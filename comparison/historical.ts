@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { detectNarrativeChanges } from "@/comparison/narrative";
 import type { AgentClaim, AnalysisReport, EvidenceCitation, KeyMetric } from "@/lib/types";
 import type {
   GuidanceChange,
@@ -60,6 +61,13 @@ export function compareHistoricalFilings({
   const guidanceChanges = compareGuidance(current, prior);
   const riskFactorDrift = compareRiskFactors(current.report, prior.report);
   const sentimentDrift = compareSentiment(current.report, prior.report);
+  const narrativeChanges = detectNarrativeChanges({
+    current: current.report,
+    prior: prior.report,
+    metricDeltas,
+    riskFactorDrift,
+    sentimentDrift
+  });
 
   return {
     comparisonType: resolvedType,
@@ -69,7 +77,8 @@ export function compareHistoricalFilings({
     guidanceChanges,
     riskFactorDrift,
     sentimentDrift,
-    summary: buildSummary(metricDeltas, guidanceChanges, riskFactorDrift, sentimentDrift)
+    narrativeChanges,
+    summary: buildSummary(metricDeltas, guidanceChanges, riskFactorDrift, sentimentDrift, narrativeChanges.summary)
   };
 }
 
@@ -315,19 +324,22 @@ function buildSummary(
   metricDeltas: MetricDelta[],
   guidanceChanges: GuidanceChange[],
   riskFactorDrift: RiskFactorDrift,
-  sentimentDrift: SentimentDrift
+  sentimentDrift: SentimentDrift,
+  narrativeSummary: AgentClaim[]
 ): AgentClaim[] {
   const citations = [
     ...metricDeltas.flatMap((delta) => delta.citations),
     ...guidanceChanges.flatMap((guidance) => guidance.citations),
-    ...riskFactorDrift.citations
+    ...riskFactorDrift.citations,
+    ...narrativeSummary.flatMap((claim) => claim.citations)
   ].slice(0, 4);
 
   const claim = [
     `${metricDeltas.length} comparable metrics were matched across periods.`,
     guidanceChanges.length > 0 ? `${guidanceChanges.length} guidance changes were detected.` : "No comparable guidance change was detected.",
     `Risk factor severity was ${riskFactorDrift.severityChange}.`,
-    `Sentiment drift was ${sentimentDrift.direction}.`
+    `Sentiment drift was ${sentimentDrift.direction}.`,
+    narrativeSummary[0]?.claim ?? "Narrative drift could not be summarized."
   ].join(" ");
 
   return [

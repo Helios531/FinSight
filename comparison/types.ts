@@ -66,6 +66,54 @@ export type SentimentBreakdown = {
   risk: number;
 };
 
+export type NarrativeToneShift = {
+  direction: "more_constructive" | "more_cautious" | "more_uncertain" | "flat";
+  currentToneScore: number;
+  priorToneScore: number;
+  scoreChange: number;
+  drivers: string[];
+  citations: EvidenceCitation[];
+};
+
+export type NarrativeRiskChange = {
+  theme: string;
+  label: string;
+  changeType: "new" | "removed" | "persistent";
+  currentMentions: number;
+  priorMentions: number;
+  confidence: number;
+  citations: EvidenceCitation[];
+};
+
+export type NarrativeWordingChange = {
+  theme: string;
+  label: string;
+  changeType: "intensified" | "softened" | "materially_reworded";
+  priorLanguage: string;
+  currentLanguage: string;
+  intensityDelta: number;
+  confidence: number;
+  citations: EvidenceCitation[];
+};
+
+export type HiddenDeteriorationSignal = {
+  id: string;
+  issue: string;
+  explanation: string;
+  severity: "low" | "medium" | "high";
+  confidence: number;
+  citations: EvidenceCitation[];
+};
+
+export type NarrativeChangeDetection = {
+  toneShift: NarrativeToneShift;
+  newRisks: NarrativeRiskChange[];
+  removedRisks: NarrativeRiskChange[];
+  wordingChanges: NarrativeWordingChange[];
+  hiddenDeterioration: HiddenDeteriorationSignal[];
+  summary: AgentClaim[];
+};
+
 export type HistoricalComparisonResult = {
   comparisonType: HistoricalComparisonType;
   currentPeriod: HistoricalPeriod;
@@ -74,5 +122,6 @@ export type HistoricalComparisonResult = {
   guidanceChanges: GuidanceChange[];
   riskFactorDrift: RiskFactorDrift;
   sentimentDrift: SentimentDrift;
+  narrativeChanges: NarrativeChangeDetection;
   summary: AgentClaim[];
 };

@@ -72,6 +72,81 @@ describe("historical filing comparison engine", () => {
     expect(result.riskFactorDrift.severityChange).toBe("increased");
     expect(result.sentimentDrift.direction).toBe("more_cautious");
   });
+
+  it("detects narrative tone shifts, new risks, removed risks, and intensified wording", () => {
+    const prior = snapshot("prior", "FY 2025", [], {
+      bull: 0.6,
+      bear: 0.2,
+      risk: [
+        { term: "litigation exposure was limited and supply chain delays were manageable", confidence: 0.3 },
+        { term: "demand remained stable", confidence: 0.2 }
+      ]
+    });
+    const current = snapshot("current", "FY 2026", [], {
+      bull: 0.4,
+      bear: 0.5,
+      risk: [
+        {
+          term: "significant supply chain disruption materially increased and created elevated component constraints",
+          confidence: 0.7
+        },
+        { term: "new regulatory investigation could increase compliance cost", confidence: 0.6 }
+      ]
+    });
+
+    const result = compareHistoricalFilings({ current, prior });
+
+    expect(result.narrativeChanges.toneShift.direction).toBe("more_cautious");
+    expect(result.narrativeChanges.newRisks.map((risk) => risk.theme)).toContain("regulatory");
+    expect(result.narrativeChanges.removedRisks.map((risk) => risk.theme)).toContain("litigation");
+    expect(result.narrativeChanges.wordingChanges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          theme: "supply_chain",
+          changeType: "intensified"
+        })
+      ])
+    );
+    expect(result.narrativeChanges.summary[0].citations.length).toBeGreaterThan(0);
+  });
+
+  it("flags hidden deterioration when constructive tone conflicts with deteriorating metrics", () => {
+    const prior = snapshot(
+      "prior",
+      "Q4 2025",
+      [metric("Operating margin", "operating_margin", "income_statement", "24%", 24, "percent")],
+      {
+        bull: 0.4,
+        bear: 0.2,
+        risk: [{ term: "moderate margin pressure", confidence: 0.2 }],
+        bullClaim: "Management described stable demand."
+      }
+    );
+    const current = snapshot(
+      "current",
+      "Q4 2026",
+      [metric("Operating margin", "operating_margin", "income_statement", "18%", 18, "percent")],
+      {
+        bull: 0.8,
+        bear: 0.1,
+        risk: [{ term: "limited margin pressure", confidence: 0.2 }],
+        bullClaim: "Management highlighted growth and improved profitability despite margin pressure and adjusted costs."
+      }
+    );
+
+    const result = compareHistoricalFilings({ current, prior });
+
+    expect(result.narrativeChanges.hiddenDeterioration).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          issue: "Constructive tone conflicts with deteriorating metrics"
+        }),
+        expect.objectContaining({
+          issue: "Offset or adjustment language increased scrutiny need"
+        })
+      ])
+    );
+  });
 });
 
 function snapshot(
@@ -82,6 +157,8 @@ function snapshot(
     bull?: number;
     bear?: number;
     risk?: Array<{ term: string; confidence: number }>;
+    bullClaim?: string;
+    bearClaim?: string;
   } = {}
 ) {
   return {
@@ -124,6 +201,8 @@ function report(
     bull?: number;
     bear?: number;
     risk?: Array<{ term: string; confidence: number }>;
+    bullClaim?: string;
+    bearClaim?: string;
   }
 ): AnalysisReport {
   return {
@@ -140,7 +219,7 @@ function report(
       {
         id: `${id}-bull`,
         title: "Bull",
-        claim: "Revenue evidence improved.",
+        claim: sentiment.bullClaim ?? "Revenue evidence improved.",
         polarity: "bull",
         confidence: sentiment.bull ?? 0.5,
         citations: [citation(`${id}-bull-citation`)],
@@ -151,7 +230,7 @@ function report(
       {
         id: `${id}-bear`,
         title: "Bear",
-        claim: "Expense pressure exists.",
+        claim: sentiment.bearClaim ?? "Expense pressure exists.",
         polarity: "bear",
         confidence: sentiment.bear ?? 0.3,
         citations: [citation(`${id}-bear-citation`)],
