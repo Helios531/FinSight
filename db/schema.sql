@@ -164,6 +164,24 @@ create table if not exists cross_company_intelligence (
 create index if not exists cross_company_intelligence_portfolio_idx
   on cross_company_intelligence(portfolio_id, generated_at desc);
 
+create table if not exists historical_intelligence_runs (
+  id text primary key,
+  company_id text references companies(id) on delete set null,
+  document_id uuid not null references documents(id) on delete cascade,
+  generated_at timestamptz not null,
+  prior_filing_count integer not null,
+  previous_guidance jsonb not null default '[]'::jsonb,
+  historical_risks jsonb not null default '[]'::jsonb,
+  recurring_narratives jsonb not null default '[]'::jsonb,
+  signals jsonb not null default '[]'::jsonb,
+  limitations jsonb not null default '[]'::jsonb
+);
+
+create index if not exists historical_intelligence_company_idx
+  on historical_intelligence_runs(company_id, generated_at desc);
+create index if not exists historical_intelligence_document_idx
+  on historical_intelligence_runs(document_id, generated_at desc);
+
 create table if not exists knowledge_graphs (
   id text primary key,
   document_id uuid not null references documents(id) on delete cascade,

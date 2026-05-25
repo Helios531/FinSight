@@ -89,6 +89,62 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
         </div>
       </Panel>
 
+      {report.historicalIntelligence ? (
+        <Panel title="What Changed" icon={<FileSearch className="h-4 w-4" aria-hidden />}>
+          <div className="grid gap-4 xl:grid-cols-[1fr_300px]">
+            <div className="grid gap-2 md:grid-cols-2">
+              {report.historicalIntelligence.signals.slice(0, 8).map((signal) => (
+                <div key={signal.id} className="rounded border border-ink-200 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="font-mono text-[11px] uppercase text-ink-500">{signal.type.replaceAll("_", " ")}</span>
+                      <h3 className="mt-1 text-sm font-semibold">{signal.title}</h3>
+                    </div>
+                    <Severity severity={signal.severity} />
+                  </div>
+                  <p className="mt-2 text-xs text-ink-700">{signal.summary}</p>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {signal.citations.slice(0, 2).map((citation) => (
+                      <CitationButton key={citation.id} citation={citation} onCitation={setSelectedCitation} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {report.historicalIntelligence.signals.length === 0 ? (
+                <div className="rounded border border-ink-200 p-3 text-xs text-ink-600">
+                  No material historical change signal crossed the deterministic threshold.
+                </div>
+              ) : null}
+            </div>
+            <div className="space-y-4 border-t border-ink-100 pt-4 xl:border-l xl:border-t-0 xl:pl-4 xl:pt-0">
+              <div>
+                <h3 className="text-xs font-semibold uppercase text-ink-500">Prior Context</h3>
+                <p className="mt-1 text-sm font-semibold">{report.historicalIntelligence.priorFilingCount} prior filing(s)</p>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold uppercase text-ink-500">Previous Guidance</h3>
+                <div className="mt-2 space-y-2">
+                  {report.historicalIntelligence.previousGuidance.slice(0, 3).map((metric) => (
+                    <div key={`${metric.label}-${metric.value}-${metric.lastSeenDocumentId}`} className="border-b border-ink-100 pb-2">
+                      <p className="text-xs font-medium">{metric.label}</p>
+                      <p className="font-mono text-xs text-ink-600">{metric.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h3 className="text-xs font-semibold uppercase text-ink-500">Recurring Narratives</h3>
+                <div className="mt-2 space-y-2">
+                  {report.historicalIntelligence.recurringNarratives.slice(0, 3).map((claim) => (
+                    <p key={claim.id} className="line-clamp-2 border-b border-ink-100 pb-2 text-xs text-ink-700">{claim.claim}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Panel>
+      ) : null}
+
       {report.companyMemory ? (
         <Panel title="Company Memory" icon={<FileSearch className="h-4 w-4" aria-hidden />}>
           <div className="grid gap-4 xl:grid-cols-3">

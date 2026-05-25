@@ -10,6 +10,7 @@ import { InMemoryVectorStore } from "@/retrieval/store";
 import { runAnalysisWorkflow } from "@/agents/workflow";
 import { rememberCompanyAnalysis } from "@/memory/company";
 import { createCrossCompanyIntelligence } from "@/memory/cross-company";
+import { createHistoricalIntelligence } from "@/memory/historical-intelligence";
 import { createKnowledgeGraph } from "@/memory/knowledge-graph";
 import { updatePortfolioForAnalysis } from "@/memory/portfolio";
 import { updateWatchlistForAnalysis } from "@/memory/watchlist";
@@ -46,6 +47,7 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     chunkCount: chunks.length
   });
   report.companyMemory = await rememberCompanyAnalysis({ document, report });
+  report.historicalIntelligence = await createHistoricalIntelligence(report);
   report.watchlist = await updateWatchlistForAnalysis({
     document,
     report,
@@ -70,6 +72,7 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     confidence: report.confidence.score,
     companyId: report.companyMemory.companyId,
     companyFilingCount: report.companyMemory.filingCount,
+    historicalSignals: report.historicalIntelligence.signals.length,
     watchlistAlerts: report.watchlist.alertCount,
     portfolioCompanies: report.portfolio.companyCount,
     portfolioOverlappingRisks: report.portfolio.overlappingRisks.length,

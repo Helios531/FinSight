@@ -256,6 +256,35 @@ export type CrossCompanyIntelligenceSummary = {
   limitations: string[];
 };
 
+export type HistoricalChangeSignalType =
+  | "new_risk"
+  | "recurring_risk"
+  | "guidance_change"
+  | "narrative_pattern"
+  | "metric_deterioration";
+
+export type HistoricalChangeSignal = {
+  id: string;
+  type: HistoricalChangeSignalType;
+  severity: WatchlistAlertSeverity;
+  title: string;
+  summary: string;
+  citations: EvidenceCitation[];
+};
+
+export type HistoricalIntelligenceSummary = {
+  id: string;
+  companyId?: string;
+  documentId: string;
+  generatedAt: string;
+  priorFilingCount: number;
+  previousGuidance: CompanyMemoryMetric[];
+  historicalRisks: CompanyMemoryRisk[];
+  recurringNarratives: CompanyMemoryClaim[];
+  signals: HistoricalChangeSignal[];
+  limitations: string[];
+};
+
 export type KnowledgeGraphNodeType = "company" | "executive" | "supplier" | "product" | "risk" | "sector" | "macro_factor";
 
 export type KnowledgeGraphEdgeType =
@@ -440,6 +469,7 @@ export type AnalysisReport = {
   watchlist?: WatchlistSummary;
   portfolio?: PortfolioIntelligenceSummary;
   crossCompany?: CrossCompanyIntelligenceSummary;
+  historicalIntelligence?: HistoricalIntelligenceSummary;
   knowledgeGraph?: KnowledgeGraphSummary;
   predictiveRisk?: PredictiveRiskSummary;
   workspace?: AnalystWorkspaceSummary;

@@ -88,6 +88,20 @@ export function reportResourceEnvelope(report: AnalysisReport) {
           limitations: report.crossCompany.limitations
         }
         : null,
+      historicalIntelligence: report.historicalIntelligence
+        ? {
+          id: report.historicalIntelligence.id,
+          companyId: report.historicalIntelligence.companyId,
+          documentId: report.historicalIntelligence.documentId,
+          generatedAt: report.historicalIntelligence.generatedAt,
+          priorFilingCount: report.historicalIntelligence.priorFilingCount,
+          previousGuidance: report.historicalIntelligence.previousGuidance,
+          historicalRisks: report.historicalIntelligence.historicalRisks,
+          recurringNarratives: report.historicalIntelligence.recurringNarratives,
+          signals: report.historicalIntelligence.signals,
+          limitations: report.historicalIntelligence.limitations
+        }
+        : null,
       knowledgeGraph: report.knowledgeGraph
         ? {
           graphId: report.knowledgeGraph.graphId,
