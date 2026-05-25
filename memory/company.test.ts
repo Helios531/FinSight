@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildMemoryWrite, identifyCompany, rememberCompanyAnalysis } from "@/memory/company";
+import { buildMemoryWrite, identifyCompany, loadCompanyMemoryForDocument, rememberCompanyAnalysis } from "@/memory/company";
 import type { AnalysisReport, EvidenceCitation } from "@/lib/types";
 import type { ParsedDocument } from "@/parsers/types";
 
@@ -49,6 +49,21 @@ describe("persistent company memory", () => {
     expect(summary.historicalMetrics.map((metric) => metric.value)).toEqual(
       expect.arrayContaining(["$118 million", "$126 million"])
     );
+  });
+
+  it("loads prior company memory before the next filing is written", async () => {
+    const q1 = document("delta-q1-2026-earnings-call.txt", "d1");
+    const q2 = document("delta-q2-2026-earnings-call.txt", "d2");
+
+    await rememberCompanyAnalysis({
+      document: q1,
+      report: analysisReport(q1, "2026-01-01T00:00:00.000Z", "$100 million")
+    });
+
+    const prior = await loadCompanyMemoryForDocument(q2);
+
+    expect(prior?.filingCount).toBe(1);
+    expect(prior?.pastFilings.map((filing) => filing.documentId)).toEqual([q1.id]);
   });
 });
 

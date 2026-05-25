@@ -8,7 +8,7 @@ import { chunkDocument } from "@/retrieval/chunking";
 import { indexChunks } from "@/retrieval/indexing";
 import { InMemoryVectorStore } from "@/retrieval/store";
 import { runAnalysisWorkflow } from "@/agents/workflow";
-import { rememberCompanyAnalysis } from "@/memory/company";
+import { loadCompanyMemoryForDocument, rememberCompanyAnalysis } from "@/memory/company";
 import { createCrossCompanyIntelligence } from "@/memory/cross-company";
 import { createHistoricalIntelligence } from "@/memory/historical-intelligence";
 import { createKnowledgeGraph } from "@/memory/knowledge-graph";
@@ -46,8 +46,12 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     store,
     chunkCount: chunks.length
   });
+  const priorCompanyMemory = await loadCompanyMemoryForDocument(document);
   report.companyMemory = await rememberCompanyAnalysis({ document, report });
-  report.historicalIntelligence = await createHistoricalIntelligence(report);
+  report.historicalIntelligence = await createHistoricalIntelligence({
+    ...report,
+    companyMemory: priorCompanyMemory
+  });
   report.watchlist = await updateWatchlistForAnalysis({
     document,
     report,

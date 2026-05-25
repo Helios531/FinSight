@@ -8,6 +8,7 @@ describe("historical intelligence and what changed layer", () => {
 
     expect(summary.priorFilingCount).toBe(2);
     expect(summary.previousGuidance.length).toBeGreaterThan(0);
+    expect(summary.previousGuidance.every((metric) => metric.lastSeenDocumentId !== report().document.id)).toBe(true);
     expect(summary.signals.map((signal) => signal.type)).toEqual(
       expect.arrayContaining(["recurring_risk", "guidance_change", "metric_deterioration", "narrative_pattern"])
     );
@@ -124,6 +125,16 @@ function report(): AnalysisReport {
         }
       ],
       historicalMetrics: [
+        {
+          label: "Margin guidance",
+          value: "lowered",
+          period: "Q2 2026",
+          firstSeenDocumentId: currentDoc,
+          lastSeenDocumentId: currentDoc,
+          occurrenceCount: 1,
+          lastSeenAt: "2026-05-26T00:00:00.000Z",
+          citations: [guidanceCitation]
+        },
         {
           label: "Revenue",
           value: "$100 million",

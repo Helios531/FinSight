@@ -95,6 +95,15 @@ export function identifyCompany(document: ParsedDocument): CompanyIdentity {
   };
 }
 
+export async function loadCompanyMemoryForDocument(document: ParsedDocument): Promise<CompanyMemorySummary | undefined> {
+  const identity = identifyCompany(document);
+  try {
+    return await loadCompanyMemory(identity.companyId);
+  } catch {
+    return undefined;
+  }
+}
+
 function extractRiskMemory(claims: AgentClaim[], documentId: string, seenAt: string): CompanyMemoryRisk[] {
   const byTheme = new Map<string, CompanyMemoryRisk>();
 
@@ -308,6 +317,7 @@ async function loadCompanyMemory(companyId: string): Promise<CompanyMemorySummar
     )
   ]);
   const companyRow = company.rows[0];
+  if (!companyRow) throw new Error(`Company memory not found for ${companyId}.`);
   const latest = filings.rows[0];
 
   return {

@@ -45,7 +45,10 @@ export async function createHistoricalIntelligence(report: AnalysisReport): Prom
 
 export function buildHistoricalIntelligence(report: AnalysisReport): HistoricalIntelligenceSummary {
   const memory = report.companyMemory;
-  const previousGuidance = memory?.historicalMetrics.filter(isGuidanceMetric).slice(0, 8) ?? [];
+  const previousGuidance = memory?.historicalMetrics
+    .filter((metric) => metric.lastSeenDocumentId !== report.document.id)
+    .filter(isGuidanceMetric)
+    .slice(0, 8) ?? [];
   const historicalRisks = memory?.recurringRisks.slice(0, 8) ?? [];
   const recurringNarratives = memory?.managementClaims.filter((claim) => claim.occurrenceCount > 1).slice(0, 8) ?? [];
   const signals = memory
