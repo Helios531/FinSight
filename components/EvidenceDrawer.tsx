@@ -37,13 +37,21 @@ export function EvidenceDrawer({
           <div>
             <dt className="font-mono text-xs uppercase text-ink-500">Location</dt>
             <dd className="mt-1 font-medium">
-              {citation.page ? `Page ${citation.page}` : "Page unavailable"}
+              {citation.page
+                ? `Page ${citation.page}${citation.pageEnd && citation.pageEnd !== citation.page ? `-${citation.pageEnd}` : ""}`
+                : "Page unavailable"}
               {citation.timestamp ? ` | ${citation.timestamp}` : ""}
             </dd>
           </div>
           <div>
             <dt className="font-mono text-xs uppercase text-ink-500">Relevance</dt>
             <dd className="mt-1 font-medium">{Math.round(citation.relevanceScore * 100)}%</dd>
+          </div>
+          <div>
+            <dt className="font-mono text-xs uppercase text-ink-500">Chunk</dt>
+            <dd className="mt-1 font-medium">
+              #{citation.chunkIndex} chars {citation.charStart}-{citation.charEnd}
+            </dd>
           </div>
         </dl>
         <blockquote className="mt-5 whitespace-pre-wrap rounded border border-ink-200 bg-ink-50 p-4 text-sm leading-6 text-ink-800">

@@ -203,7 +203,9 @@ function CitationButton({
       className="mr-1 inline-flex rounded border border-ink-200 px-2 py-1 font-mono text-[11px] text-ink-600 hover:border-ink-500"
     >
       {citation.section}
-      {citation.page ? ` p.${citation.page}` : ""}
+      {citation.page
+        ? ` p.${citation.page}${citation.pageEnd && citation.pageEnd !== citation.page ? `-${citation.pageEnd}` : ""}`
+        : ""}
     </button>
   );
 }

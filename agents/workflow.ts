@@ -2,6 +2,7 @@ import { runBearAgent } from "@/agents/bear";
 import { runBullAgent } from "@/agents/bull";
 import { runRefereeAgent } from "@/agents/referee";
 import { runRiskAgent } from "@/agents/risk";
+import { validateAnalysisReport } from "@/agents/validation";
 import type { AnalysisReport } from "@/lib/types";
 import type { ParsedDocument } from "@/parsers/types";
 import { evidenceToCitation, type VectorStore } from "@/retrieval/store";
@@ -35,7 +36,7 @@ export async function runAnalysisWorkflow({
     runRiskAgent(context)
   ]);
 
-  return runRefereeAgent({
+  return validateAnalysisReport(runRefereeAgent({
     input: {
       bull,
       bear,
@@ -53,5 +54,5 @@ export async function runAnalysisWorkflow({
       processedAt: new Date().toISOString()
     },
     startedAt: Date.now()
-  });
+  }));
 }

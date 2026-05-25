@@ -35,9 +35,18 @@ export function ObservabilityPanel({ traces }: { traces: AgentRun[] }) {
                         <div key={diagnostic.query} className="rounded border border-ink-200 p-2">
                           <p className="text-xs text-ink-700">{diagnostic.query}</p>
                           <p className="mt-1 font-mono text-[11px] text-ink-500">
-                            relevance {Math.round(diagnostic.meanRelevance * 100)}% | chunks{" "}
+                            relevance {Math.round(diagnostic.meanRelevance * 100)}%
+                            {diagnostic.minRelevance !== undefined && diagnostic.maxRelevance !== undefined
+                              ? ` (${Math.round(diagnostic.minRelevance * 100)}-${Math.round(diagnostic.maxRelevance * 100)}%)`
+                              : ""}{" "}
+                            | chunks{" "}
                             {diagnostic.retrievedChunkIds.length}
                           </p>
+                          {diagnostic.rankingSignals ? (
+                            <p className="mt-1 line-clamp-2 font-mono text-[11px] text-ink-500">
+                              {Object.values(diagnostic.rankingSignals).flat().slice(0, 6).join(" | ")}
+                            </p>
+                          ) : null}
                         </div>
                       ))
                     )}
