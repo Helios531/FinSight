@@ -253,6 +253,45 @@ export type AnalystWorkspaceSummary = {
   updatedAt: string;
 };
 
+export type AuditEvent = {
+  id: string;
+  documentId: string;
+  eventType: "ingest" | "retrieval" | "agent_analysis" | "memory_update" | "workspace_export" | "report_version";
+  actor: string;
+  occurredAt: string;
+  details: Record<string, string | number | boolean>;
+};
+
+export type EvidenceTrackingRecord = {
+  citationId: string;
+  documentId: string;
+  section: string;
+  page?: number;
+  excerptHash: string;
+  claimIds: string[];
+};
+
+export type ReportVersion = {
+  id: string;
+  documentId: string;
+  version: number;
+  createdAt: string;
+  checksum: string;
+  reproducibilitySeed: string;
+};
+
+export type ComplianceSummary = {
+  auditId: string;
+  documentId: string;
+  reproducibilitySeed: string;
+  reportChecksum: string;
+  evidenceRecordCount: number;
+  auditEvents: AuditEvent[];
+  evidenceTracking: EvidenceTrackingRecord[];
+  versions: ReportVersion[];
+  createdAt: string;
+};
+
 export type AnalysisReport = {
   document: {
     id: string;
@@ -286,6 +325,7 @@ export type AnalysisReport = {
   watchlist?: WatchlistSummary;
   portfolio?: PortfolioIntelligenceSummary;
   workspace?: AnalystWorkspaceSummary;
+  compliance?: ComplianceSummary;
   finalVerdict: {
     stance: "Constructive" | "Cautious" | "Mixed" | "Insufficient Evidence";
     rationale: string;

@@ -1,4 +1,5 @@
 import { insertDocumentRecord, PgVectorStore } from "@/db/vector-store";
+import { createComplianceSummary } from "@/compliance/audit";
 import { env, hasOpenAi } from "@/lib/config";
 import { logger } from "@/lib/logger";
 import type { DocumentKind } from "@/lib/types";
@@ -52,6 +53,7 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     watchlist: report.watchlist
   });
   report.workspace = await createAnalystWorkspace(report);
+  report.compliance = await createComplianceSummary(report);
 
   logger.info("document.analysis_completed", {
     documentId: document.id,
@@ -66,7 +68,9 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     portfolioCompanies: report.portfolio.companyCount,
     portfolioOverlappingRisks: report.portfolio.overlappingRisks.length,
     workspaceId: report.workspace.workspaceId,
-    savedFindings: report.workspace.savedFindings.length
+    savedFindings: report.workspace.savedFindings.length,
+    auditId: report.compliance.auditId,
+    reportChecksum: report.compliance.reportChecksum
   });
 
   return report;

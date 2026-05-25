@@ -199,3 +199,47 @@ create index if not exists analyst_workspaces_document_idx on analyst_workspaces
 create index if not exists workspace_annotations_workspace_idx on workspace_annotations(workspace_id, created_at desc);
 create index if not exists workspace_findings_workspace_idx on workspace_findings(workspace_id, priority, created_at desc);
 create index if not exists workspace_exports_workspace_idx on workspace_exports(workspace_id, generated_at desc);
+
+create table if not exists audit_runs (
+  id text primary key,
+  document_id uuid not null references documents(id) on delete cascade,
+  reproducibility_seed text not null,
+  report_checksum text not null,
+  created_at timestamptz not null
+);
+
+create table if not exists audit_events (
+  id text primary key,
+  audit_id text not null references audit_runs(id) on delete cascade,
+  document_id uuid not null references documents(id) on delete cascade,
+  event_type text not null,
+  actor text not null,
+  occurred_at timestamptz not null,
+  details jsonb not null default '{}'::jsonb
+);
+
+create table if not exists evidence_tracking (
+  id text primary key,
+  audit_id text not null references audit_runs(id) on delete cascade,
+  citation_id text not null,
+  document_id uuid not null references documents(id) on delete cascade,
+  section text not null,
+  page integer,
+  excerpt_hash text not null,
+  claim_ids jsonb not null default '[]'::jsonb
+);
+
+create table if not exists report_versions (
+  id text primary key,
+  audit_id text not null references audit_runs(id) on delete cascade,
+  document_id uuid not null references documents(id) on delete cascade,
+  version integer not null,
+  created_at timestamptz not null,
+  checksum text not null,
+  reproducibility_seed text not null
+);
+
+create index if not exists audit_runs_document_idx on audit_runs(document_id, created_at desc);
+create index if not exists audit_events_audit_idx on audit_events(audit_id, occurred_at desc);
+create index if not exists evidence_tracking_audit_idx on evidence_tracking(audit_id, citation_id);
+create index if not exists report_versions_document_idx on report_versions(document_id, version desc);

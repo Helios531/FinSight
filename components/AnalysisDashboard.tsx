@@ -309,6 +309,44 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
         </Panel>
       ) : null}
 
+      {report.compliance ? (
+        <Panel title="Audit & Compliance" icon={<CheckCircle2 className="h-4 w-4" aria-hidden />}>
+          <div className="grid gap-4 xl:grid-cols-[300px_1fr_1fr]">
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Reproducibility</h3>
+              <p className="mt-2 font-mono text-xs text-ink-700">Seed: {report.compliance.reproducibilitySeed.slice(0, 24)}</p>
+              <p className="mt-1 font-mono text-xs text-ink-700">Checksum: {report.compliance.reportChecksum.slice(0, 24)}</p>
+              <p className="mt-2 text-xs text-ink-500">{report.compliance.evidenceRecordCount} evidence record(s) tracked</p>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Audit Events</h3>
+              <div className="mt-2 space-y-2">
+                {report.compliance.auditEvents.slice(0, 6).map((event) => (
+                  <div key={event.id} className="border-b border-ink-100 pb-2">
+                    <span className="font-mono text-[11px] uppercase text-ink-500">{event.eventType}</span>
+                    <p className="mt-1 text-xs text-ink-700">{event.actor}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Version History</h3>
+              <div className="mt-2 space-y-2">
+                {report.compliance.versions.map((version) => (
+                  <div key={version.id} className="rounded border border-ink-200 p-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-medium">Version {version.version}</span>
+                      <span className="font-mono text-ink-500">{version.checksum.slice(0, 12)}</span>
+                    </div>
+                    <p className="mt-1 font-mono text-[11px] text-ink-500">{version.createdAt}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Panel>
+      ) : null}
+
       <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
         <Panel title="Areas of Disagreement" icon={<Scale className="h-4 w-4" aria-hidden />}>
           <div className="space-y-3">
