@@ -22,7 +22,7 @@ export async function completeJson<T>({
   try {
     const response = await client.chat.completions.create({
       model: env.OPENAI_MODEL,
-      temperature: 0.1,
+      temperature: 0,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },

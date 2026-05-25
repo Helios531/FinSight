@@ -1,4 +1,4 @@
-import { dedupeCitations, meanScore } from "@/agents/common";
+import { dedupeCitations, meanScore, stableClaimId } from "@/agents/common";
 import type { RefereeInput } from "@/agents/types";
 import type { AgentClaim, AnalysisReport, EvidenceCitation, KeyMetric } from "@/lib/types";
 import { scoreConfidence } from "@/scoring/confidence";
@@ -66,7 +66,6 @@ function buildDisagreements(bullClaims: AgentClaim[], counterClaims: AgentClaim[
 
   return [
     {
-      id: crypto.randomUUID(),
       issue: "Upside evidence versus downside or risk evidence",
       bullPosition: bull.claim,
       bearOrRiskPosition: counter.claim,
@@ -74,7 +73,10 @@ function buildDisagreements(bullClaims: AgentClaim[], counterClaims: AgentClaim[
         "Both positions are retained because each is grounded in retrieved excerpts. The referee does not net them into a single unsupported directional call.",
       citations: dedupeCitations([...bull.citations, ...counter.citations])
     }
-  ];
+  ].map((item) => ({
+    ...item,
+    id: stableClaimId(item.issue, `${item.bullPosition}\n${item.bearOrRiskPosition}`, item.citations)
+  }));
 }
 
 function buildVerdict(
@@ -111,7 +113,7 @@ function buildExecutiveSummary(
 ): AgentClaim[] {
   return [
     {
-      id: crypto.randomUUID(),
+      id: stableClaimId("Referee verdict", `${verdict.stance}: ${verdict.rationale}`, verdict.citations),
       title: "Referee verdict",
       claim: `${verdict.stance}: ${verdict.rationale}`,
       polarity: "neutral",
@@ -120,7 +122,7 @@ function buildExecutiveSummary(
       caveats: confidence.reductions
     },
     {
-      id: crypto.randomUUID(),
+      id: stableClaimId("Audit posture", "Important conclusions are limited to retrieved excerpts.", citations.slice(0, 2)),
       title: "Audit posture",
       claim:
         "Important conclusions are limited to retrieved excerpts, and numeric claims are flagged when independent recalculation is unavailable.",

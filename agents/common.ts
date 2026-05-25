@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { AgentClaim, ClaimPolarity, EvidenceCitation } from "@/lib/types";
 import { evidenceToCitation, type RetrievedEvidence } from "@/retrieval/store";
 
@@ -16,13 +17,14 @@ export function buildClaim({
   confidence: number;
   caveats?: string[];
 }): AgentClaim {
+  const citations = evidence.slice(0, 2).map(evidenceToCitation);
   return {
-    id: crypto.randomUUID(),
+    id: stableClaimId(title, claim, citations),
     title,
     claim,
     polarity,
     confidence,
-    citations: evidence.slice(0, 2).map(evidenceToCitation),
+    citations,
     caveats
   };
 }
@@ -67,4 +69,13 @@ export function retrievalDiagnostic(query: string, evidence: RetrievedEvidence[]
     maxRelevance: scores.length > 0 ? Math.max(...scores) : undefined,
     rankingSignals: Object.fromEntries(evidence.map((item) => [item.chunk.id, item.rankingSignals ?? []]))
   };
+}
+
+export function stableClaimId(title: string, claim: string, citations: EvidenceCitation[]) {
+  return createHash("sha256")
+    .update(title)
+    .update(claim)
+    .update(citations.map((citation) => citation.id).join("|"))
+    .digest("hex")
+    .slice(0, 32);
 }
