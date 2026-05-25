@@ -21,6 +21,15 @@ The UI exposes:
 - Bear Case
 - Risk Analysis
 - Key Metrics
+- What Changed
+- Company Memory
+- Watchlist Alerts
+- Portfolio Intelligence
+- Cross-Company Intelligence
+- Knowledge Graph
+- Predictive Risk Signals
+- Analyst Workspace
+- Audit and Compliance
 - Confidence Assessment
 - Source Citations
 - Areas of Disagreement
@@ -80,9 +89,23 @@ agents/
 
 retrieval/
   chunking.ts                 Section-aware text chunking
+  ranking.ts                  Hybrid semantic and lexical reranking
   embeddings.ts               OpenAI embeddings or deterministic hash embeddings
   indexing.ts                 Embedding generation and vector-store indexing
   store.ts                    In-memory vector store and citation conversion
+
+comparison/
+  historical.ts               Quarter/year comparison engine
+  narrative.ts                Narrative drift and hidden deterioration detection
+  types.ts                    Historical comparison types
+
+memory/
+  company.ts                  Persistent company memory
+  historical-intelligence.ts  What Changed and prior-filing intelligence
+  watchlist.ts                Company watchlist alerts
+  portfolio.ts                Portfolio exposure aggregation
+  cross-company.ts            Competitor, sector, and macro comparison
+  knowledge-graph.ts          Company/risk/executive/product relationship graph
 
 parsers/
   pdf.ts                      PDF and text extraction
@@ -94,6 +117,17 @@ verification/
 
 scoring/
   confidence.ts               Confidence score calculation
+  predictive-risk.ts          Early-warning risk signal engine
+
+workspace/
+  analyst.ts                  Saved findings, annotations, and export report data
+
+compliance/
+  audit.ts                    Evidence tracking, checksums, and report version metadata
+
+evaluation/
+  runner.ts                   Benchmark evaluation runner
+  metrics.ts                  Hallucination, citation, numeric, and stability scoring
 
 db/
   client.ts                   PostgreSQL pool creation
@@ -119,7 +153,9 @@ lib/
 8. `agents/workflow.ts` retrieves metric evidence first, extracts structured metrics, then runs Bull, Bear, and Risk agents in parallel.
 9. Each specialized agent retrieves its own evidence with role-specific queries and produces cited claims.
 10. `agents/referee.ts` aggregates claims, surfaces disagreement, scores confidence, and produces the final verdict.
-11. The UI renders the report, citations, metric verification status, confidence drivers, confidence reductions, and trace diagnostics.
+11. The workflow writes company memory, then builds historical intelligence from the prior memory snapshot.
+12. Watchlist, portfolio, cross-company, knowledge graph, predictive risk, workspace, and compliance summaries are generated from the grounded report.
+13. The UI renders the report, citations, metric verification status, confidence drivers, confidence reductions, historical changes, graph relationships, predictive signals, and trace diagnostics.
 
 ## Agent Behavior
 
@@ -213,6 +249,21 @@ Negative inputs:
 
 The UI shows both confidence drivers and confidence reductions so analysts can see why a conclusion is more or less reliable.
 
+## Intelligence Layers
+
+The MVP now includes several deterministic intelligence layers beyond the initial single-document summary:
+
+- `memory/company.ts` remembers prior filings, recurring risks, management claims, and historical metrics by normalized company identity.
+- `memory/historical-intelligence.ts` generates the What Changed panel from prior company memory, excluding the current filing from previous-guidance context.
+- `comparison/historical.ts` and `comparison/narrative.ts` provide quarter/year comparison, tone drift, new/removed risks, wording intensity shifts, and hidden deterioration signals.
+- `memory/watchlist.ts` creates company, filing, earnings, risk-change, and confidence alerts.
+- `memory/portfolio.ts` aggregates tracked companies into sector exposure, overlapping risks, and concentration signals.
+- `memory/cross-company.ts` compares competitors, sector trends, industry themes, and macro exposures across the portfolio.
+- `memory/knowledge-graph.ts` builds cited relationships among companies, executives, suppliers, products, risks, sectors, and macro factors.
+- `scoring/predictive-risk.ts` surfaces early-warning risk indicators for deteriorating fundamentals, accounting/fraud indicators, liquidity stress, and narrative inconsistency.
+
+These layers are evidence-driven heuristics, not forecasts. Predictive risk signals should be interpreted as analyst-review queues.
+
 ## Citation Model
 
 Citations include:
@@ -237,9 +288,17 @@ The app emits structured JSON logs through `lib/logger.ts`.
 Logged events include:
 
 - `document.upload_received`
+- `document.parsed`
 - `document.analysis_completed`
 - `document.analysis_failed`
 - `llm.completion_fallback`
+- `company_memory.updated`
+- `historical_intelligence.updated`
+- `watchlist.updated`
+- `portfolio.updated`
+- `knowledge_graph.updated`
+- `predictive_risk.updated`
+- `compliance.audit_created`
 
 The report also includes agent traces:
 
@@ -288,6 +347,14 @@ Schema summary:
 
 - `documents`: uploaded document metadata
 - `document_chunks`: chunk text, source metadata, token estimates, and vector embeddings
+- `companies`, `company_filings`, `company_risks`, `company_claims`, `company_metrics`: persistent company memory
+- `watchlists`, `watchlist_companies`, `watchlist_alerts`: company tracking and alerts
+- `portfolios`, `portfolio_companies`, `cross_company_intelligence`: portfolio and cross-company intelligence
+- `historical_intelligence_runs`: What Changed output snapshots
+- `knowledge_graphs`, `knowledge_graph_nodes`, `knowledge_graph_edges`: relationship graph summaries
+- `predictive_risk_runs`, `predictive_risk_signals`: early-warning risk signals
+- `analyst_workspaces`, `workspace_annotations`, `workspace_findings`, `workspace_exports`: analyst workflow artifacts
+- `audit_runs`, `audit_events`, `evidence_tracking`, `report_versions`: audit and reproducibility metadata
 
 ## Running Locally
 
@@ -335,6 +402,23 @@ Response:
 
 The endpoint returns an `AnalysisReport` matching `lib/types.ts`, including document metadata, agent claims, key metrics, confidence assessment, citations, disagreements, final verdict, and traces.
 
+### `POST /api/v1/analyze`
+
+Versioned upload endpoint for integrations. It accepts the same multipart form fields as `/api/documents` and also supports:
+
+- `envelope=full`: return the full `AnalysisReport`
+- `envelope=summary`: return an integration-friendly resource envelope
+
+The same 20 MB upload limit is enforced on both upload endpoints.
+
+### `POST /api/v1/reports`
+
+Normalizes an existing `AnalysisReport` JSON body into the API resource envelope without re-running analysis.
+
+### `GET /api/v1/health`
+
+Returns service health, API version, endpoint metadata, and platform capabilities.
+
 ## Verification
 
 Run all local checks:
@@ -350,16 +434,27 @@ Focused tests currently cover:
 
 - Growth-rate verification
 - Detection and sanitization of generic finance language
+- Retrieval grounding and debate scoring
+- Structured financial extraction
+- Historical comparison and narrative drift
+- Company memory, watchlists, portfolio, cross-company intelligence, and knowledge graph generation
+- Predictive risk signals
+- Audit/compliance metadata
+- Analyst workspace artifacts
+- Evaluation metrics for hallucination, citation precision, numerical correctness, and output stability
 
 ## Known MVP Limits
 
 - Agent orchestration is implemented with typed async modules and `Promise.all`, not LangGraph.
 - PDF extraction is text-based; scanned PDFs without OCR are not supported.
 - Page numbers are approximate because `pdf-parse` text output does not preserve exact per-page chunk coordinates in this implementation.
+- Character offsets are approximate when chunks contain overlapping paragraphs.
 - Table extraction is not yet structured enough for institutional financial statement reconciliation.
-- pgvector persistence is request-driven and does not yet expose document history, multi-document comparison, watchlists, or portfolio workflows.
-- The Referee currently surfaces one primary disagreement pair rather than a full contradiction graph.
+- pgvector persistence is request-driven; there is no separate migration runner or tenant-aware production data lifecycle yet.
+- Watchlists, portfolio, workspace, and API platform features are MVP server-side primitives, not full multi-user enterprise workflows.
+- The Referee scores multiple disagreement pairs, but the contradiction engine is still heuristic rather than a full claim graph.
 - The local fallback path is deterministic and testable, but not semantically equivalent to production embeddings.
+- Predictive risk signals are deterministic early-warning indicators, not statistical forecasts.
 
 ## Development Notes
 
