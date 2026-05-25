@@ -126,3 +126,26 @@ create table if not exists watchlist_alerts (
 create index if not exists watchlist_companies_watchlist_idx on watchlist_companies(watchlist_id, tracked_at desc);
 create index if not exists watchlist_alerts_watchlist_idx on watchlist_alerts(watchlist_id, created_at desc);
 create index if not exists watchlist_alerts_company_idx on watchlist_alerts(company_id, created_at desc);
+
+create table if not exists portfolios (
+  id text primary key,
+  name text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists portfolio_companies (
+  portfolio_id text not null references portfolios(id) on delete cascade,
+  company_id text not null references companies(id) on delete cascade,
+  company_name text not null,
+  sector text not null,
+  added_at timestamptz not null default now(),
+  latest_document_id uuid,
+  latest_document_filename text,
+  filing_count integer not null default 0,
+  risk_count integer not null default 0,
+  alert_count integer not null default 0,
+  primary key (portfolio_id, company_id)
+);
+
+create index if not exists portfolio_companies_portfolio_idx on portfolio_companies(portfolio_id, sector, company_name);

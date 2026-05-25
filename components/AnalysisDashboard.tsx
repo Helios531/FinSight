@@ -174,6 +174,82 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
         </Panel>
       ) : null}
 
+      {report.portfolio ? (
+        <Panel title="Portfolio Intelligence" icon={<BarChart3 className="h-4 w-4" aria-hidden />}>
+          <div className="grid gap-4 xl:grid-cols-[1fr_1fr_1fr]">
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Company Exposure</h3>
+              <div className="mt-2 space-y-2">
+                {report.portfolio.companies.slice(0, 6).map((company) => (
+                  <div key={company.companyId} className="border-b border-ink-100 pb-2">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="truncate font-medium">{company.companyName}</span>
+                      <span className="font-mono text-xs">{Math.round(company.concentrationWeight * 100)}%</span>
+                    </div>
+                    <p className="text-xs text-ink-500">
+                      {company.sector} · {company.filingCount} filing(s) · {company.alertCount} alert(s)
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Sector Exposure</h3>
+              <div className="mt-2 space-y-2">
+                {report.portfolio.sectorExposure.slice(0, 6).map((sector) => (
+                  <div key={sector.sector} className="border-b border-ink-100 pb-2">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="font-medium">{sector.sector}</span>
+                      <span className="font-mono text-xs">{Math.round(sector.concentrationWeight * 100)}%</span>
+                    </div>
+                    <p className="truncate text-xs text-ink-500">{sector.companies.join(", ")}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Overlapping Risks</h3>
+              <div className="mt-2 space-y-2">
+                {report.portfolio.overlappingRisks.slice(0, 5).map((risk) => (
+                  <div key={risk.theme} className="border-b border-ink-100 pb-2">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="font-medium">{risk.label}</span>
+                      <Severity severity={risk.severity} />
+                    </div>
+                    <p className="text-xs text-ink-500">{risk.companyCount} companies: {risk.companies.join(", ")}</p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {risk.citations.slice(0, 2).map((citation) => (
+                        <CitationButton key={citation.id} citation={citation} onCitation={setSelectedCitation} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {report.portfolio.overlappingRisks.length === 0 ? (
+                  <p className="text-xs text-ink-500">No overlapping risk themes detected yet.</p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+          {report.portfolio.concentrationSignals.length > 0 ? (
+            <div className="mt-4 border-t border-ink-100 pt-3">
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Concentration Signals</h3>
+              <div className="mt-2 grid gap-2 md:grid-cols-2">
+                {report.portfolio.concentrationSignals.slice(0, 4).map((signal) => (
+                  <div key={signal.id} className="rounded border border-ink-200 p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="text-sm font-semibold">{signal.issue}</h4>
+                      <Severity severity={signal.severity} />
+                    </div>
+                    <p className="mt-2 text-xs text-ink-700">{signal.explanation}</p>
+                    <p className="mt-1 truncate text-xs text-ink-500">{signal.affectedCompanies.join(", ")}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </Panel>
+      ) : null}
+
       <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
         <Panel title="Areas of Disagreement" icon={<Scale className="h-4 w-4" aria-hidden />}>
           <div className="space-y-3">

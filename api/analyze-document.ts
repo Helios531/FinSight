@@ -8,6 +8,7 @@ import { indexChunks } from "@/retrieval/indexing";
 import { InMemoryVectorStore } from "@/retrieval/store";
 import { runAnalysisWorkflow } from "@/agents/workflow";
 import { rememberCompanyAnalysis } from "@/memory/company";
+import { updatePortfolioForAnalysis } from "@/memory/portfolio";
 import { updateWatchlistForAnalysis } from "@/memory/watchlist";
 
 export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
@@ -45,6 +46,10 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     report,
     memory: report.companyMemory
   });
+  report.portfolio = await updatePortfolioForAnalysis({
+    memory: report.companyMemory,
+    watchlist: report.watchlist
+  });
 
   logger.info("document.analysis_completed", {
     documentId: document.id,
@@ -55,7 +60,9 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     confidence: report.confidence.score,
     companyId: report.companyMemory.companyId,
     companyFilingCount: report.companyMemory.filingCount,
-    watchlistAlerts: report.watchlist.alertCount
+    watchlistAlerts: report.watchlist.alertCount,
+    portfolioCompanies: report.portfolio.companyCount,
+    portfolioOverlappingRisks: report.portfolio.overlappingRisks.length
   });
 
   return report;

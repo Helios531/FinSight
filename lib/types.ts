@@ -160,6 +160,56 @@ export type WatchlistSummary = {
   alerts: WatchlistAlert[];
 };
 
+export type PortfolioCompanyExposure = {
+  companyId: string;
+  companyName: string;
+  sector: string;
+  filingCount: number;
+  riskCount: number;
+  alertCount: number;
+  concentrationWeight: number;
+  latestDocumentId: string;
+  latestDocumentFilename: string;
+  topRisks: string[];
+};
+
+export type PortfolioSectorExposure = {
+  sector: string;
+  companyCount: number;
+  concentrationWeight: number;
+  companies: string[];
+};
+
+export type PortfolioOverlappingRisk = {
+  theme: string;
+  label: string;
+  companyCount: number;
+  companies: string[];
+  severity: WatchlistAlertSeverity;
+  citations: EvidenceCitation[];
+};
+
+export type PortfolioConcentrationSignal = {
+  id: string;
+  issue: string;
+  severity: WatchlistAlertSeverity;
+  explanation: string;
+  affectedCompanies: string[];
+};
+
+export type PortfolioIntelligenceSummary = {
+  portfolioId: string;
+  companyCount: number;
+  filingCount: number;
+  alertCount: number;
+  highSeverityAlertCount: number;
+  sectorExposure: PortfolioSectorExposure[];
+  overlappingRisks: PortfolioOverlappingRisk[];
+  concentrationSignals: PortfolioConcentrationSignal[];
+  companies: PortfolioCompanyExposure[];
+  updatedAt: string;
+};
+
 export type AnalysisReport = {
   document: {
     id: string;
@@ -191,6 +241,7 @@ export type AnalysisReport = {
   debateAssessment: DebateAssessment;
   companyMemory?: CompanyMemorySummary;
   watchlist?: WatchlistSummary;
+  portfolio?: PortfolioIntelligenceSummary;
   finalVerdict: {
     stance: "Constructive" | "Cautious" | "Mixed" | "Insufficient Evidence";
     rationale: string;
