@@ -86,6 +86,16 @@ export function reportResourceEnvelope(report: AnalysisReport) {
           limitations: report.crossCompany.limitations
         }
         : null,
+      knowledgeGraph: report.knowledgeGraph
+        ? {
+          graphId: report.knowledgeGraph.graphId,
+          nodeCount: report.knowledgeGraph.nodeCount,
+          edgeCount: report.knowledgeGraph.edgeCount,
+          nodes: report.knowledgeGraph.nodes,
+          edges: report.knowledgeGraph.edges,
+          diagnostics: report.knowledgeGraph.diagnostics
+        }
+        : null,
       workspace: report.workspace
         ? {
           workspaceId: report.workspace.workspaceId,

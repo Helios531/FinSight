@@ -256,6 +256,48 @@ export type CrossCompanyIntelligenceSummary = {
   limitations: string[];
 };
 
+export type KnowledgeGraphNodeType = "company" | "executive" | "supplier" | "product" | "risk" | "sector" | "macro_factor";
+
+export type KnowledgeGraphEdgeType =
+  | "operates_in"
+  | "exposed_to"
+  | "mentions"
+  | "supplies"
+  | "managed_by"
+  | "competes_with"
+  | "shares_risk"
+  | "linked_to_macro";
+
+export type KnowledgeGraphNode = {
+  id: string;
+  type: KnowledgeGraphNodeType;
+  label: string;
+  properties: Record<string, string | number | boolean>;
+  citations: EvidenceCitation[];
+};
+
+export type KnowledgeGraphEdge = {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  type: KnowledgeGraphEdgeType;
+  weight: number;
+  evidenceCount: number;
+  citations: EvidenceCitation[];
+};
+
+export type KnowledgeGraphSummary = {
+  graphId: string;
+  documentId: string;
+  companyId?: string;
+  generatedAt: string;
+  nodeCount: number;
+  edgeCount: number;
+  nodes: KnowledgeGraphNode[];
+  edges: KnowledgeGraphEdge[];
+  diagnostics: string[];
+};
+
 export type WorkspaceAnnotation = {
   id: string;
   documentId: string;
@@ -371,6 +413,7 @@ export type AnalysisReport = {
   watchlist?: WatchlistSummary;
   portfolio?: PortfolioIntelligenceSummary;
   crossCompany?: CrossCompanyIntelligenceSummary;
+  knowledgeGraph?: KnowledgeGraphSummary;
   workspace?: AnalystWorkspaceSummary;
   compliance?: ComplianceSummary;
   finalVerdict: {

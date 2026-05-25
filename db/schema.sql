@@ -164,6 +164,38 @@ create table if not exists cross_company_intelligence (
 create index if not exists cross_company_intelligence_portfolio_idx
   on cross_company_intelligence(portfolio_id, generated_at desc);
 
+create table if not exists knowledge_graphs (
+  id text primary key,
+  document_id uuid not null references documents(id) on delete cascade,
+  company_id text references companies(id) on delete set null,
+  generated_at timestamptz not null,
+  diagnostics jsonb not null default '[]'::jsonb
+);
+
+create table if not exists knowledge_graph_nodes (
+  id text primary key,
+  graph_id text not null references knowledge_graphs(id) on delete cascade,
+  node_type text not null,
+  label text not null,
+  properties jsonb not null default '{}'::jsonb,
+  citations jsonb not null default '[]'::jsonb
+);
+
+create table if not exists knowledge_graph_edges (
+  id text primary key,
+  graph_id text not null references knowledge_graphs(id) on delete cascade,
+  source_id text not null,
+  target_id text not null,
+  edge_type text not null,
+  weight double precision not null,
+  evidence_count integer not null,
+  citations jsonb not null default '[]'::jsonb
+);
+
+create index if not exists knowledge_graphs_document_idx on knowledge_graphs(document_id, generated_at desc);
+create index if not exists knowledge_graph_nodes_graph_idx on knowledge_graph_nodes(graph_id, node_type, label);
+create index if not exists knowledge_graph_edges_graph_idx on knowledge_graph_edges(graph_id, edge_type);
+
 create table if not exists analyst_workspaces (
   id text primary key,
   document_id uuid not null references documents(id) on delete cascade,

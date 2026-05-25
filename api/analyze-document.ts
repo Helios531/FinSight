@@ -10,6 +10,7 @@ import { InMemoryVectorStore } from "@/retrieval/store";
 import { runAnalysisWorkflow } from "@/agents/workflow";
 import { rememberCompanyAnalysis } from "@/memory/company";
 import { createCrossCompanyIntelligence } from "@/memory/cross-company";
+import { createKnowledgeGraph } from "@/memory/knowledge-graph";
 import { updatePortfolioForAnalysis } from "@/memory/portfolio";
 import { updateWatchlistForAnalysis } from "@/memory/watchlist";
 import { createAnalystWorkspace } from "@/workspace/analyst";
@@ -54,6 +55,7 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     watchlist: report.watchlist
   });
   report.crossCompany = await createCrossCompanyIntelligence(report.portfolio);
+  report.knowledgeGraph = await createKnowledgeGraph(report);
   report.workspace = await createAnalystWorkspace(report);
   report.compliance = await createComplianceSummary(report);
 
@@ -71,6 +73,8 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     portfolioOverlappingRisks: report.portfolio.overlappingRisks.length,
     crossCompanyComparisons: report.crossCompany.competitorComparisons.length,
     macroExposures: report.crossCompany.macroExposures.length,
+    knowledgeGraphNodes: report.knowledgeGraph.nodeCount,
+    knowledgeGraphEdges: report.knowledgeGraph.edgeCount,
     workspaceId: report.workspace.workspaceId,
     savedFindings: report.workspace.savedFindings.length,
     auditId: report.compliance.auditId,

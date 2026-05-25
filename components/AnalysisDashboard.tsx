@@ -341,6 +341,59 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
         </Panel>
       ) : null}
 
+      {report.knowledgeGraph ? (
+        <Panel title="Knowledge Graph" icon={<FileSearch className="h-4 w-4" aria-hidden />}>
+          <div className="grid gap-4 xl:grid-cols-[280px_1fr_1fr]">
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Graph</h3>
+              <p className="mt-2 text-sm font-semibold">{report.knowledgeGraph.nodeCount} nodes</p>
+              <p className="text-sm font-semibold">{report.knowledgeGraph.edgeCount} relationships</p>
+              {report.knowledgeGraph.diagnostics.length > 0 ? (
+                <ul className="mt-3 space-y-1 text-xs text-ink-500">
+                  {report.knowledgeGraph.diagnostics.slice(0, 3).map((diagnostic) => (
+                    <li key={diagnostic}>{diagnostic}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Entities</h3>
+              <div className="mt-2 grid gap-2 md:grid-cols-2">
+                {report.knowledgeGraph.nodes.slice(0, 10).map((node) => (
+                  <div key={node.id} className="rounded border border-ink-200 p-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-sm font-medium">{node.label}</span>
+                      <span className="font-mono text-[11px] uppercase text-ink-500">{node.type}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Relationships</h3>
+              <div className="mt-2 space-y-2">
+                {report.knowledgeGraph.edges.slice(0, 8).map((edge) => (
+                  <div key={edge.id} className="border-b border-ink-100 pb-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-[11px] uppercase text-ink-500">{edge.type.replaceAll("_", " ")}</span>
+                      <span className="font-mono text-xs">{Math.round(edge.weight * 100) / 100}</span>
+                    </div>
+                    <p className="mt-1 truncate text-xs text-ink-700">
+                      {edge.sourceId} {"->"} {edge.targetId}
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {edge.citations.slice(0, 1).map((citation) => (
+                        <CitationButton key={citation.id} citation={citation} onCitation={setSelectedCitation} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Panel>
+      ) : null}
+
       {report.workspace ? (
         <Panel title="Analyst Workspace" icon={<FileSearch className="h-4 w-4" aria-hidden />}>
           <div className="grid gap-4 xl:grid-cols-[1fr_1fr_260px]">
