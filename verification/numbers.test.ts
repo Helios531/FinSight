@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { verifyGrowthStatement } from "@/verification/numbers";
+import { extractKeyMetrics, verifyGrowthStatement } from "@/verification/numbers";
+import type { RetrievedEvidence } from "@/retrieval/store";
 
 describe("verifyGrowthStatement", () => {
   it("verifies reported growth from prior and current values", () => {
@@ -31,4 +32,38 @@ describe("verifyGrowthStatement", () => {
 
     expect(result).toBeNull();
   });
+
+  it("generates stable metric ids from cited evidence", () => {
+    const evidence = [retrievedEvidence()];
+
+    const first = extractKeyMetrics(evidence);
+    const second = extractKeyMetrics(evidence);
+
+    expect(first[0]?.id).toBe(second[0]?.id);
+  });
 });
+
+function retrievedEvidence(): RetrievedEvidence {
+  return {
+    score: 0.8,
+    chunk: {
+      id: "11111111-1111-4111-8111-111111111111",
+      documentId: "22222222-2222-4222-8222-222222222222",
+      documentKind: "sec_filing",
+      sourceFile: "metric.txt",
+      text: "Revenue increased 18% from $100 million to $118 million in Q2 2026.",
+      section: "MD&A",
+      page: 1,
+      pageEnd: 1,
+      index: 0,
+      tokenEstimate: 20,
+      charStart: 0,
+      charEnd: 68,
+      metadata: {
+        hasTableLikeContent: false,
+        lineCount: 1,
+        retrievalText: "MD&A\nRevenue increased 18% from $100 million to $118 million in Q2 2026."
+      }
+    }
+  };
+}

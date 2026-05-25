@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { EvidenceCitation, KeyMetric } from "@/lib/types";
 import type { DocumentChunk } from "@/parsers/types";
 import { evidenceToCitation, type RetrievedEvidence } from "@/retrieval/store";
@@ -25,7 +26,7 @@ export function extractKeyMetrics(evidence: RetrievedEvidence[]): KeyMetric[] {
 
       const citation = evidenceToCitation(item);
       metrics.push({
-        id: crypto.randomUUID(),
+        id: stableMetricId(label, number.raw, citation),
         label,
         value: number.raw,
         period: inferPeriod(item.chunk.text),
@@ -36,6 +37,15 @@ export function extractKeyMetrics(evidence: RetrievedEvidence[]): KeyMetric[] {
   }
 
   return metrics.slice(0, 8);
+}
+
+function stableMetricId(label: string, value: string, citation: EvidenceCitation) {
+  return createHash("sha256")
+    .update(label)
+    .update(value)
+    .update(citation.id)
+    .digest("hex")
+    .slice(0, 32);
 }
 
 export function verifyGrowthStatement(text: string) {

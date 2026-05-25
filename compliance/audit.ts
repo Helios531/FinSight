@@ -228,7 +228,10 @@ function saveComplianceInProcess(summary: ComplianceSummary) {
 
 function checksumReport(report: AnalysisReport) {
   return stableHash(JSON.stringify({
-    document: report.document,
+    document: {
+      ...report.document,
+      processedAt: "<normalized>"
+    },
     executiveSummary: report.executiveSummary,
     bullCase: report.bullCase,
     bearCase: report.bearCase,

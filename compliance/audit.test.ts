@@ -25,6 +25,18 @@ describe("audit trail and compliance infrastructure", () => {
       reproducibilitySeed: compliance.reproducibilitySeed
     });
   });
+
+  it("keeps audit checksums stable when only processedAt changes", () => {
+    const first = analysisReport();
+    const second = analysisReport();
+    second.document.processedAt = "2026-05-26T12:34:56.000Z";
+
+    const firstCompliance = buildComplianceSummary(first);
+    const secondCompliance = buildComplianceSummary(second);
+
+    expect(firstCompliance.reportChecksum).toBe(secondCompliance.reportChecksum);
+    expect(firstCompliance.auditId).toBe(secondCompliance.auditId);
+  });
 });
 
 function analysisReport(): AnalysisReport {

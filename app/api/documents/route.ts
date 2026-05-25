@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { analyzeUploadedDocument } from "@/api/analyze-document";
 import { logger } from "@/lib/logger";
+import { validateUploadedFile } from "@/lib/upload";
 
 export const runtime = "nodejs";
 
@@ -23,8 +24,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Missing uploaded file." }, { status: 400 });
     }
 
-    if (file.size > 20 * 1024 * 1024) {
-      return NextResponse.json({ message: "File exceeds 20MB MVP limit." }, { status: 413 });
+    const validation = validateUploadedFile(file);
+    if (!validation.ok) {
+      return NextResponse.json({ message: validation.message }, { status: validation.status });
     }
 
     logger.info("document.upload_received", {

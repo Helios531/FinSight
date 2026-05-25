@@ -3,6 +3,7 @@ import { z } from "zod";
 import { analyzeUploadedDocument } from "@/api/analyze-document";
 import { reportResourceEnvelope } from "@/api/platform";
 import { logger } from "@/lib/logger";
+import { validateUploadedFile } from "@/lib/upload";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,11 @@ export async function POST(request: NextRequest) {
 
     if (!(file instanceof File)) {
       return NextResponse.json({ message: "Missing uploaded file." }, { status: 400 });
+    }
+
+    const validation = validateUploadedFile(file);
+    if (!validation.ok) {
+      return NextResponse.json({ message: validation.message }, { status: validation.status });
     }
 
     const report = await analyzeUploadedDocument(file, parsed.kind);
