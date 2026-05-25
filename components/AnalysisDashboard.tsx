@@ -394,6 +394,49 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
         </Panel>
       ) : null}
 
+      {report.predictiveRisk ? (
+        <Panel title="Predictive Risk Signals" icon={<AlertTriangle className="h-4 w-4" aria-hidden />}>
+          <div className="grid gap-4 xl:grid-cols-[220px_1fr]">
+            <div className="border-b border-ink-100 pb-3 xl:border-b-0 xl:border-r xl:pb-0 xl:pr-4">
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Risk Score</h3>
+              <div className="mt-2 flex items-center gap-2">
+                <span className="font-mono text-2xl font-semibold">{report.predictiveRisk.score}</span>
+                <Severity severity={report.predictiveRisk.overallRisk} />
+              </div>
+              <ul className="mt-3 space-y-1 text-xs text-ink-500">
+                {report.predictiveRisk.limitations.slice(0, 3).map((limitation) => (
+                  <li key={limitation}>{limitation}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="grid gap-2 md:grid-cols-2">
+              {report.predictiveRisk.signals.map((signal) => (
+                <div key={signal.id} className="rounded border border-ink-200 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="font-mono text-[11px] uppercase text-ink-500">{signal.type.replaceAll("_", " ")}</span>
+                      <h3 className="mt-1 text-sm font-semibold">{signal.title}</h3>
+                    </div>
+                    <Severity severity={signal.severity} />
+                  </div>
+                  <p className="mt-2 text-xs text-ink-700">{signal.rationale}</p>
+                  <ul className="mt-2 space-y-1 text-xs text-ink-600">
+                    {signal.drivers.slice(0, 3).map((driver) => (
+                      <li key={driver}>{driver}</li>
+                    ))}
+                  </ul>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {signal.citations.slice(0, 2).map((citation) => (
+                      <CitationButton key={citation.id} citation={citation} onCitation={setSelectedCitation} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Panel>
+      ) : null}
+
       {report.workspace ? (
         <Panel title="Analyst Workspace" icon={<FileSearch className="h-4 w-4" aria-hidden />}>
           <div className="grid gap-4 xl:grid-cols-[1fr_1fr_260px]">

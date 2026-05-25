@@ -13,6 +13,7 @@ import { createCrossCompanyIntelligence } from "@/memory/cross-company";
 import { createKnowledgeGraph } from "@/memory/knowledge-graph";
 import { updatePortfolioForAnalysis } from "@/memory/portfolio";
 import { updateWatchlistForAnalysis } from "@/memory/watchlist";
+import { createPredictiveRiskSummary } from "@/scoring/predictive-risk";
 import { createAnalystWorkspace } from "@/workspace/analyst";
 
 export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
@@ -56,6 +57,7 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
   });
   report.crossCompany = await createCrossCompanyIntelligence(report.portfolio);
   report.knowledgeGraph = await createKnowledgeGraph(report);
+  report.predictiveRisk = await createPredictiveRiskSummary(report);
   report.workspace = await createAnalystWorkspace(report);
   report.compliance = await createComplianceSummary(report);
 
@@ -75,6 +77,8 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     macroExposures: report.crossCompany.macroExposures.length,
     knowledgeGraphNodes: report.knowledgeGraph.nodeCount,
     knowledgeGraphEdges: report.knowledgeGraph.edgeCount,
+    predictiveRiskScore: report.predictiveRisk.score,
+    predictiveRiskSignals: report.predictiveRisk.signals.length,
     workspaceId: report.workspace.workspaceId,
     savedFindings: report.workspace.savedFindings.length,
     auditId: report.compliance.auditId,

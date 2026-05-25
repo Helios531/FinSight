@@ -20,7 +20,9 @@ export function platformManifest(): ApiPlatformManifest {
       "company_memory",
       "watchlist_alerts",
       "portfolio_intelligence",
+      "historical_intelligence",
       "analyst_workspace_exports",
+      "predictive_risk_signals",
       "audit_compliance"
     ],
     endpoints: [
@@ -94,6 +96,17 @@ export function reportResourceEnvelope(report: AnalysisReport) {
           nodes: report.knowledgeGraph.nodes,
           edges: report.knowledgeGraph.edges,
           diagnostics: report.knowledgeGraph.diagnostics
+        }
+        : null,
+      predictiveRisk: report.predictiveRisk
+        ? {
+          id: report.predictiveRisk.id,
+          documentId: report.predictiveRisk.documentId,
+          generatedAt: report.predictiveRisk.generatedAt,
+          overallRisk: report.predictiveRisk.overallRisk,
+          score: report.predictiveRisk.score,
+          signals: report.predictiveRisk.signals,
+          limitations: report.predictiveRisk.limitations
         }
         : null,
       workspace: report.workspace

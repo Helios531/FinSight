@@ -196,6 +196,30 @@ create index if not exists knowledge_graphs_document_idx on knowledge_graphs(doc
 create index if not exists knowledge_graph_nodes_graph_idx on knowledge_graph_nodes(graph_id, node_type, label);
 create index if not exists knowledge_graph_edges_graph_idx on knowledge_graph_edges(graph_id, edge_type);
 
+create table if not exists predictive_risk_runs (
+  id text primary key,
+  document_id uuid not null references documents(id) on delete cascade,
+  generated_at timestamptz not null,
+  overall_risk text not null,
+  score integer not null,
+  limitations jsonb not null default '[]'::jsonb
+);
+
+create table if not exists predictive_risk_signals (
+  id text primary key,
+  run_id text not null references predictive_risk_runs(id) on delete cascade,
+  signal_type text not null,
+  severity text not null,
+  confidence double precision not null,
+  title text not null,
+  rationale text not null,
+  drivers jsonb not null default '[]'::jsonb,
+  citations jsonb not null default '[]'::jsonb
+);
+
+create index if not exists predictive_risk_runs_document_idx on predictive_risk_runs(document_id, generated_at desc);
+create index if not exists predictive_risk_signals_run_idx on predictive_risk_signals(run_id, signal_type, severity);
+
 create table if not exists analyst_workspaces (
   id text primary key,
   document_id uuid not null references documents(id) on delete cascade,

@@ -298,6 +298,33 @@ export type KnowledgeGraphSummary = {
   diagnostics: string[];
 };
 
+export type PredictiveRiskSignalType =
+  | "deteriorating_fundamentals"
+  | "fraud_indicator"
+  | "liquidity_stress"
+  | "narrative_inconsistency";
+
+export type PredictiveRiskSignal = {
+  id: string;
+  type: PredictiveRiskSignalType;
+  severity: WatchlistAlertSeverity;
+  confidence: number;
+  title: string;
+  rationale: string;
+  drivers: string[];
+  citations: EvidenceCitation[];
+};
+
+export type PredictiveRiskSummary = {
+  id: string;
+  documentId: string;
+  generatedAt: string;
+  overallRisk: WatchlistAlertSeverity;
+  score: number;
+  signals: PredictiveRiskSignal[];
+  limitations: string[];
+};
+
 export type WorkspaceAnnotation = {
   id: string;
   documentId: string;
@@ -414,6 +441,7 @@ export type AnalysisReport = {
   portfolio?: PortfolioIntelligenceSummary;
   crossCompany?: CrossCompanyIntelligenceSummary;
   knowledgeGraph?: KnowledgeGraphSummary;
+  predictiveRisk?: PredictiveRiskSummary;
   workspace?: AnalystWorkspaceSummary;
   compliance?: ComplianceSummary;
   finalVerdict: {
