@@ -21,6 +21,16 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     pageCount: document.pageCount
   });
 
+  logger.info("document.parsed", {
+    documentId: document.id,
+    filename: document.filename,
+    kind: document.kind,
+    parser: document.metadata.parser,
+    pageCount: document.pageCount,
+    byteLength: document.metadata.byteLength,
+    diagnostics: document.metadata.diagnostics
+  });
+
   const index = await indexChunks(chunks, store);
   const report = await runAnalysisWorkflow({
     document,

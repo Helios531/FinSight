@@ -71,6 +71,8 @@ export type AnalysisReport = {
     filename: string;
     kind: DocumentKind;
     chunkCount: number;
+    pageCount?: number;
+    parserDiagnostics: string[];
     processedAt: string;
   };
   executiveSummary: AgentClaim[];

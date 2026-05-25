@@ -48,6 +48,8 @@ export async function runAnalysisWorkflow({
       filename: document.filename,
       kind: document.kind,
       chunkCount,
+      pageCount: document.pageCount,
+      parserDiagnostics: document.metadata.diagnostics.map((diagnostic) => diagnostic.message),
       processedAt: new Date().toISOString()
     },
     startedAt: Date.now()
