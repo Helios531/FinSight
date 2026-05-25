@@ -1,6 +1,7 @@
 import type { EvidenceCitation } from "@/lib/types";
 import type { DocumentChunk } from "@/parsers/types";
 import { cosineSimilarity, embedTexts } from "@/retrieval/embeddings";
+import { rankEvidence } from "@/retrieval/ranking";
 
 export type RetrievedEvidence = {
   chunk: DocumentChunk;
@@ -12,7 +13,11 @@ export type RetrievedEvidence = {
 
 export type VectorStore = {
   upsertChunks(chunks: DocumentChunk[], embeddings: number[][]): Promise<void>;
-  search(query: string, limit: number, filter?: { documentId?: string }): Promise<RetrievedEvidence[]>;
+  search(
+    query: string,
+    limit: number,
+    filter?: { documentId?: string; minScore?: number; section?: string }
+  ): Promise<RetrievedEvidence[]>;
 };
 
 type StoredChunk = {
@@ -29,16 +34,22 @@ export class InMemoryVectorStore implements VectorStore {
     });
   }
 
-  async search(query: string, limit: number, filter?: { documentId?: string }) {
+  async search(query: string, limit: number, filter?: { documentId?: string; minScore?: number; section?: string }) {
     const [queryEmbedding] = await embedTexts([query]);
-    return this.chunks
+    const candidates = this.chunks
       .filter((item) => !filter?.documentId || item.chunk.documentId === filter.documentId)
+      .filter((item) => !filter?.section || item.chunk.section === filter.section)
       .map((item) => ({
         chunk: item.chunk,
-        score: cosineSimilarity(queryEmbedding, item.embedding)
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit);
+        score: cosineSimilarity(queryEmbedding, item.embedding),
+        semanticScore: cosineSimilarity(queryEmbedding, item.embedding)
+      }));
+
+    return rankEvidence(query, candidates, {
+      limit,
+      minScore: filter?.minScore,
+      diversityBySection: true
+    });
   }
 }
 

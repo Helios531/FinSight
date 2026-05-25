@@ -1,6 +1,7 @@
 import { createPgPool } from "@/db/client";
 import type { DocumentChunk } from "@/parsers/types";
 import { embedTexts } from "@/retrieval/embeddings";
+import { rankEvidence } from "@/retrieval/ranking";
 import type { RetrievedEvidence, VectorStore } from "@/retrieval/store";
 
 export class PgVectorStore implements VectorStore {
@@ -48,7 +49,11 @@ export class PgVectorStore implements VectorStore {
     }
   }
 
-  async search(query: string, limit: number, filter?: { documentId?: string }): Promise<RetrievedEvidence[]> {
+  async search(
+    query: string,
+    limit: number,
+    filter?: { documentId?: string; minScore?: number; section?: string }
+  ): Promise<RetrievedEvidence[]> {
     if (!this.pool) throw new Error("DATABASE_URL is required for PgVectorStore.");
     const [embedding] = await embedTexts([query]);
     const result = await this.pool.query(
@@ -56,13 +61,15 @@ export class PgVectorStore implements VectorStore {
         token_estimate, char_start, char_end, has_table_like_content, content, 1 - (embedding <=> $1::vector) as score
        from document_chunks
        where ($2::uuid is null or document_id = $2::uuid)
+        and ($4::text is null or section = $4::text)
        order by embedding <=> $1::vector
        limit $3`,
-      [toVectorLiteral(embedding), filter?.documentId ?? null, limit]
+      [toVectorLiteral(embedding), filter?.documentId ?? null, Math.max(limit * 4, 20), filter?.section ?? null]
     );
 
-    return result.rows.map((row) => ({
+    const candidates = result.rows.map((row) => ({
       score: Number(row.score),
+      semanticScore: Number(row.score),
       chunk: {
         id: row.id,
         documentId: row.document_id,
@@ -84,6 +91,12 @@ export class PgVectorStore implements VectorStore {
         }
       }
     }));
+
+    return rankEvidence(query, candidates, {
+      limit,
+      minScore: filter?.minScore,
+      diversityBySection: true
+    });
   }
 }
 

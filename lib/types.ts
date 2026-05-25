@@ -52,6 +52,9 @@ export type AgentRun = {
     query: string;
     retrievedChunkIds: string[];
     meanRelevance: number;
+    minRelevance?: number;
+    maxRelevance?: number;
+    rankingSignals?: Record<string, string[]>;
   }[];
 };
 

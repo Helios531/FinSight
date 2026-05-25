@@ -33,8 +33,12 @@ export function compactEvidence(evidence: RetrievedEvidence[]) {
     rank: index + 1,
     section: item.chunk.section,
     page: item.chunk.page,
+    pageEnd: item.chunk.pageEnd,
     timestamp: item.chunk.timestamp,
     score: Number(item.score.toFixed(3)),
+    keywordScore: item.keywordScore,
+    semanticScore: item.semanticScore,
+    rankingSignals: item.rankingSignals ?? [],
     excerpt: item.chunk.text.slice(0, 900)
   }));
 }
@@ -51,4 +55,16 @@ export function dedupeCitations(citations: EvidenceCitation[]) {
 export function meanScore(evidence: RetrievedEvidence[]) {
   if (evidence.length === 0) return 0;
   return evidence.reduce((sum, item) => sum + item.score, 0) / evidence.length;
+}
+
+export function retrievalDiagnostic(query: string, evidence: RetrievedEvidence[]) {
+  const scores = evidence.map((item) => item.score);
+  return {
+    query,
+    retrievedChunkIds: evidence.map((item) => item.chunk.id),
+    meanRelevance: meanScore(evidence),
+    minRelevance: scores.length > 0 ? Math.min(...scores) : undefined,
+    maxRelevance: scores.length > 0 ? Math.max(...scores) : undefined,
+    rankingSignals: Object.fromEntries(evidence.map((item) => [item.chunk.id, item.rankingSignals ?? []]))
+  };
 }

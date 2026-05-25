@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { buildClaim, compactEvidence, meanScore } from "@/agents/common";
+import { buildClaim, compactEvidence, meanScore, retrievalDiagnostic } from "@/agents/common";
 import { enforceGrounding } from "@/agents/grounding";
 import { completeJson } from "@/agents/llm";
 import type { AgentContext, AgentResult } from "@/agents/types";
@@ -29,7 +29,7 @@ type LlmClaims = z.infer<typeof llmClaimsSchema>;
 export async function runRiskAgent(context: AgentContext): Promise<AgentResult> {
   const startedAt = Date.now();
   const retrievals = await Promise.all(
-    queries.map((query) => context.store.search(query, 4, { documentId: context.documentId }))
+    queries.map((query) => context.store.search(query, 5, { documentId: context.documentId, minScore: 0.16 }))
   );
   const evidence = retrievals.flat();
 
@@ -64,11 +64,7 @@ export async function runRiskAgent(context: AgentContext): Promise<AgentResult> 
       agent: "Risk Agent",
       latencyMs: Date.now() - startedAt,
       tokenUsage,
-      retrievalDiagnostics: queries.map((query, index) => ({
-        query,
-        retrievedChunkIds: retrievals[index].map((item) => item.chunk.id),
-        meanRelevance: meanScore(retrievals[index])
-      }))
+      retrievalDiagnostics: queries.map((query, index) => retrievalDiagnostic(query, retrievals[index]))
     }
   };
 }

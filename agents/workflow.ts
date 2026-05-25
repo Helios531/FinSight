@@ -19,7 +19,7 @@ export async function runAnalysisWorkflow({
   const metricEvidence = await store.search(
     "revenue margin cash flow debt liquidity eps percentage growth decrease increase",
     10,
-    { documentId: document.id }
+    { documentId: document.id, minScore: 0.16 }
   );
   const keyMetrics = extractKeyMetrics(metricEvidence);
   const context = {
