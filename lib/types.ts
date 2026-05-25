@@ -210,6 +210,49 @@ export type PortfolioIntelligenceSummary = {
   updatedAt: string;
 };
 
+export type WorkspaceAnnotation = {
+  id: string;
+  documentId: string;
+  targetType: "citation" | "claim" | "metric" | "disagreement" | "portfolio_signal";
+  targetId: string;
+  note: string;
+  author: string;
+  createdAt: string;
+  citations: EvidenceCitation[];
+};
+
+export type WorkspaceSavedFinding = {
+  id: string;
+  title: string;
+  summary: string;
+  priority: "low" | "medium" | "high";
+  status: "open" | "reviewed";
+  owner: string;
+  createdAt: string;
+  citations: EvidenceCitation[];
+};
+
+export type WorkspaceExport = {
+  id: string;
+  format: "markdown" | "json";
+  filename: string;
+  generatedAt: string;
+  checksum: string;
+  content: string;
+};
+
+export type AnalystWorkspaceSummary = {
+  workspaceId: string;
+  documentId: string;
+  companyId?: string;
+  analystNotes: string[];
+  annotations: WorkspaceAnnotation[];
+  savedFindings: WorkspaceSavedFinding[];
+  collaborators: string[];
+  exports: WorkspaceExport[];
+  updatedAt: string;
+};
+
 export type AnalysisReport = {
   document: {
     id: string;
@@ -242,6 +285,7 @@ export type AnalysisReport = {
   companyMemory?: CompanyMemorySummary;
   watchlist?: WatchlistSummary;
   portfolio?: PortfolioIntelligenceSummary;
+  workspace?: AnalystWorkspaceSummary;
   finalVerdict: {
     stance: "Constructive" | "Cautious" | "Mixed" | "Insufficient Evidence";
     rationale: string;

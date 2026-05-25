@@ -149,3 +149,53 @@ create table if not exists portfolio_companies (
 );
 
 create index if not exists portfolio_companies_portfolio_idx on portfolio_companies(portfolio_id, sector, company_name);
+
+create table if not exists analyst_workspaces (
+  id text primary key,
+  document_id uuid not null references documents(id) on delete cascade,
+  company_id text references companies(id) on delete set null,
+  title text not null,
+  collaborators jsonb not null default '[]'::jsonb,
+  analyst_notes jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists workspace_annotations (
+  id text primary key,
+  workspace_id text not null references analyst_workspaces(id) on delete cascade,
+  document_id uuid not null references documents(id) on delete cascade,
+  target_type text not null,
+  target_id text not null,
+  note text not null,
+  author text not null,
+  created_at timestamptz not null,
+  citations jsonb not null default '[]'::jsonb
+);
+
+create table if not exists workspace_findings (
+  id text primary key,
+  workspace_id text not null references analyst_workspaces(id) on delete cascade,
+  title text not null,
+  summary text not null,
+  priority text not null,
+  status text not null,
+  owner text not null,
+  created_at timestamptz not null,
+  citations jsonb not null default '[]'::jsonb
+);
+
+create table if not exists workspace_exports (
+  id text primary key,
+  workspace_id text not null references analyst_workspaces(id) on delete cascade,
+  format text not null,
+  filename text not null,
+  generated_at timestamptz not null,
+  checksum text not null,
+  content text not null
+);
+
+create index if not exists analyst_workspaces_document_idx on analyst_workspaces(document_id);
+create index if not exists workspace_annotations_workspace_idx on workspace_annotations(workspace_id, created_at desc);
+create index if not exists workspace_findings_workspace_idx on workspace_findings(workspace_id, priority, created_at desc);
+create index if not exists workspace_exports_workspace_idx on workspace_exports(workspace_id, generated_at desc);

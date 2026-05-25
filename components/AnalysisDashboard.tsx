@@ -250,6 +250,65 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
         </Panel>
       ) : null}
 
+      {report.workspace ? (
+        <Panel title="Analyst Workspace" icon={<FileSearch className="h-4 w-4" aria-hidden />}>
+          <div className="grid gap-4 xl:grid-cols-[1fr_1fr_260px]">
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Saved Findings</h3>
+              <div className="mt-2 space-y-2">
+                {report.workspace.savedFindings.slice(0, 5).map((finding) => (
+                  <div key={finding.id} className="border-b border-ink-100 pb-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="text-sm font-semibold">{finding.title}</h4>
+                      <Severity severity={finding.priority === "high" ? "high" : finding.priority === "medium" ? "medium" : "info"} />
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-xs text-ink-700">{finding.summary}</p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {finding.citations.slice(0, 2).map((citation) => (
+                        <CitationButton key={citation.id} citation={citation} onCitation={setSelectedCitation} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Annotations</h3>
+              <div className="mt-2 space-y-2">
+                {report.workspace.annotations.slice(0, 5).map((annotation) => (
+                  <div key={annotation.id} className="border-b border-ink-100 pb-2">
+                    <span className="font-mono text-[11px] uppercase text-ink-500">{annotation.targetType}</span>
+                    <p className="mt-1 text-xs text-ink-700">{annotation.note}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Collaboration</h3>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {report.workspace.collaborators.map((collaborator) => (
+                  <span key={collaborator} className="rounded border border-ink-200 px-2 py-1 text-xs">
+                    {collaborator}
+                  </span>
+                ))}
+              </div>
+              <h3 className="mt-4 text-xs font-semibold uppercase text-ink-500">Exports</h3>
+              <div className="mt-2 space-y-2">
+                {report.workspace.exports.map((item) => (
+                  <div key={item.id} className="rounded border border-ink-200 p-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-xs font-medium">{item.filename}</span>
+                      <span className="font-mono text-[11px] uppercase text-ink-500">{item.format}</span>
+                    </div>
+                    <p className="mt-1 truncate font-mono text-[11px] text-ink-500">{item.checksum.slice(0, 16)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Panel>
+      ) : null}
+
       <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
         <Panel title="Areas of Disagreement" icon={<Scale className="h-4 w-4" aria-hidden />}>
           <div className="space-y-3">

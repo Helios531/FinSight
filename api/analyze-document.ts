@@ -10,6 +10,7 @@ import { runAnalysisWorkflow } from "@/agents/workflow";
 import { rememberCompanyAnalysis } from "@/memory/company";
 import { updatePortfolioForAnalysis } from "@/memory/portfolio";
 import { updateWatchlistForAnalysis } from "@/memory/watchlist";
+import { createAnalystWorkspace } from "@/workspace/analyst";
 
 export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
   const document = await parseUploadedDocument(file, kind);
@@ -50,6 +51,7 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     memory: report.companyMemory,
     watchlist: report.watchlist
   });
+  report.workspace = await createAnalystWorkspace(report);
 
   logger.info("document.analysis_completed", {
     documentId: document.id,
@@ -62,7 +64,9 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     companyFilingCount: report.companyMemory.filingCount,
     watchlistAlerts: report.watchlist.alertCount,
     portfolioCompanies: report.portfolio.companyCount,
-    portfolioOverlappingRisks: report.portfolio.overlappingRisks.length
+    portfolioOverlappingRisks: report.portfolio.overlappingRisks.length,
+    workspaceId: report.workspace.workspaceId,
+    savedFindings: report.workspace.savedFindings.length
   });
 
   return report;
