@@ -3,12 +3,17 @@ export type DocumentKind = "earnings_call" | "sec_filing" | "financial_pdf";
 export type EvidenceCitation = {
   id: string;
   documentId: string;
+  documentKind: DocumentKind;
   sourceFile: string;
   section: string;
   page?: number;
+  pageEnd?: number;
   timestamp?: string;
   excerpt: string;
   relevanceScore: number;
+  chunkIndex: number;
+  charStart: number;
+  charEnd: number;
 };
 
 export type ClaimPolarity = "bull" | "bear" | "risk" | "neutral";

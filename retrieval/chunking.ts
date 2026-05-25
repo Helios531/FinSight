@@ -1,44 +1,81 @@
+import { createHash } from "node:crypto";
 import type { DocumentChunk, ParsedDocument } from "@/parsers/types";
 
 const maxChars = 1800;
-const overlapChars = 220;
+const overlapParagraphs = 1;
 
 export function chunkDocument(document: ParsedDocument): DocumentChunk[] {
-  const paragraphs = document.text
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
+  const blocks = document.pages.flatMap((page) =>
+    page.text
+      .split(/\n{2,}/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean)
+      .map((text) => ({
+        text,
+        pageNumber: page.pageNumber,
+        section: detectSection(text)
+      }))
+  );
 
   const chunks: DocumentChunk[] = [];
-  let current = "";
+  let current: typeof blocks = [];
   let section = "Document";
+  let charCursor = 0;
 
-  for (const paragraph of paragraphs) {
-    section = detectSection(paragraph) ?? section;
+  for (const block of blocks) {
+    section = block.section ?? section;
+    const currentText = joinBlocks(current);
 
-    if ((current + "\n\n" + paragraph).length > maxChars && current.length > 0) {
-      chunks.push(toChunk(document, current, section, chunks.length));
-      current = current.slice(Math.max(0, current.length - overlapChars));
+    if ((currentText + "\n\n" + block.text).length > maxChars && current.length > 0) {
+      const chunkText = joinBlocks(current);
+      chunks.push(toChunk(document, chunkText, section, chunks.length, current, charCursor));
+      charCursor += chunkText.length;
+      current = current.slice(Math.max(0, current.length - overlapParagraphs));
     }
 
-    current = current ? `${current}\n\n${paragraph}` : paragraph;
+    current.push({ ...block, section });
   }
 
-  if (current.length > 0) chunks.push(toChunk(document, current, section, chunks.length));
-  return chunks.length > 0 ? chunks : [toChunk(document, document.text, section, 0)];
+  if (current.length > 0) {
+    const chunkText = joinBlocks(current);
+    chunks.push(toChunk(document, chunkText, section, chunks.length, current, charCursor));
+  }
+
+  return chunks.length > 0
+    ? chunks
+    : [toChunk(document, document.text, section, 0, [{ text: document.text, pageNumber: 1, section }], 0)];
 }
 
-function toChunk(document: ParsedDocument, text: string, section: string, index: number): DocumentChunk {
+function toChunk(
+  document: ParsedDocument,
+  text: string,
+  section: string,
+  index: number,
+  blocks: Array<{ text: string; pageNumber: number; section: string | null }>,
+  charStart: number
+): DocumentChunk {
+  const pages = blocks.map((block) => block.pageNumber);
+  const id = stableChunkId(document.id, index, section, text);
+  const lineCount = text.split("\n").length;
   return {
-    id: crypto.randomUUID(),
+    id,
     documentId: document.id,
+    documentKind: document.kind,
     sourceFile: document.filename,
     text,
     section,
-    page: inferPage(index, document.pageCount),
+    page: Math.min(...pages),
+    pageEnd: Math.max(...pages),
     timestamp: text.match(/\b\d{1,2}:\d{2}(?::\d{2})?\b/)?.[0],
     index,
-    tokenEstimate: Math.ceil(text.length / 4)
+    tokenEstimate: Math.ceil(text.length / 4),
+    charStart,
+    charEnd: charStart + text.length,
+    metadata: {
+      hasTableLikeContent: hasTableLikeContent(text),
+      lineCount,
+      retrievalText: `${section}\n${text}`.slice(0, 2200)
+    }
   };
 }
 
@@ -62,11 +99,33 @@ function detectSection(paragraph: string) {
   return null;
 }
 
-function inferPage(index: number, pageCount?: number) {
-  if (!pageCount || pageCount < 1) return undefined;
-  return Math.min(pageCount, Math.max(1, Math.ceil(((index + 1) / 12) * pageCount)));
-}
-
 function titleCase(value: string) {
   return value.toLowerCase().replace(/\b[a-z]/g, (letter) => letter.toUpperCase()).slice(0, 80);
+}
+
+function joinBlocks(blocks: Array<{ text: string }>) {
+  return blocks.map((block) => block.text).join("\n\n");
+}
+
+function stableChunkId(documentId: string, index: number, section: string, text: string) {
+  const hash = createHash("sha256")
+    .update(documentId)
+    .update(String(index))
+    .update(section)
+    .update(text)
+    .digest("hex");
+  return hashToUuid(hash);
+}
+
+function hasTableLikeContent(text: string) {
+  const lines = text.split("\n");
+  return lines.some((line) => {
+    const numericCells = line.match(/(?:\$?\(?-?\d[\d,.]*\)?%?)/g) ?? [];
+    return numericCells.length >= 3 || /\s{2,}/.test(line);
+  });
+}
+
+function hashToUuid(hash: string) {
+  const value = hash.slice(0, 32);
+  return `${value.slice(0, 8)}-${value.slice(8, 12)}-${value.slice(12, 16)}-${value.slice(16, 20)}-${value.slice(20)}`;
 }

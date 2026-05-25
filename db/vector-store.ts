@@ -16,19 +16,24 @@ export class PgVectorStore implements VectorStore {
         const chunk = chunks[index];
         await client.query(
           `insert into document_chunks (
-            id, document_id, source_file, section, page, timestamp,
-            chunk_index, token_estimate, content, embedding
-          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::vector)
+            id, document_id, document_kind, source_file, section, page, page_end, timestamp,
+            chunk_index, token_estimate, char_start, char_end, has_table_like_content, content, embedding
+          ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15::vector)
           on conflict (id) do update set content = excluded.content, embedding = excluded.embedding`,
           [
             chunk.id,
             chunk.documentId,
+            chunk.documentKind,
             chunk.sourceFile,
             chunk.section,
             chunk.page ?? null,
+            chunk.pageEnd ?? null,
             chunk.timestamp ?? null,
             chunk.index,
             chunk.tokenEstimate,
+            chunk.charStart,
+            chunk.charEnd,
+            chunk.metadata.hasTableLikeContent,
             chunk.text,
             toVectorLiteral(embeddings[index])
           ]
@@ -47,8 +52,8 @@ export class PgVectorStore implements VectorStore {
     if (!this.pool) throw new Error("DATABASE_URL is required for PgVectorStore.");
     const [embedding] = await embedTexts([query]);
     const result = await this.pool.query(
-      `select id, document_id, source_file, section, page, timestamp, chunk_index,
-        token_estimate, content, 1 - (embedding <=> $1::vector) as score
+      `select id, document_id, document_kind, source_file, section, page, page_end, timestamp, chunk_index,
+        token_estimate, char_start, char_end, has_table_like_content, content, 1 - (embedding <=> $1::vector) as score
        from document_chunks
        where ($2::uuid is null or document_id = $2::uuid)
        order by embedding <=> $1::vector
@@ -61,13 +66,22 @@ export class PgVectorStore implements VectorStore {
       chunk: {
         id: row.id,
         documentId: row.document_id,
+        documentKind: row.document_kind,
         sourceFile: row.source_file,
         section: row.section,
         page: row.page ?? undefined,
+        pageEnd: row.page_end ?? undefined,
         timestamp: row.timestamp ?? undefined,
         index: row.chunk_index,
         tokenEstimate: row.token_estimate,
-        text: row.content
+        charStart: row.char_start,
+        charEnd: row.char_end,
+        text: row.content,
+        metadata: {
+          hasTableLikeContent: row.has_table_like_content,
+          lineCount: String(row.content).split("\n").length,
+          retrievalText: `${row.section}\n${row.content}`.slice(0, 2200)
+        }
       }
     }));
   }

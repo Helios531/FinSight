@@ -5,6 +5,9 @@ import { cosineSimilarity, embedTexts } from "@/retrieval/embeddings";
 export type RetrievedEvidence = {
   chunk: DocumentChunk;
   score: number;
+  keywordScore?: number;
+  semanticScore?: number;
+  rankingSignals?: string[];
 };
 
 export type VectorStore = {
@@ -43,11 +46,16 @@ export function evidenceToCitation(evidence: RetrievedEvidence): EvidenceCitatio
   return {
     id: evidence.chunk.id,
     documentId: evidence.chunk.documentId,
+    documentKind: evidence.chunk.documentKind,
     sourceFile: evidence.chunk.sourceFile,
     section: evidence.chunk.section,
     page: evidence.chunk.page,
+    pageEnd: evidence.chunk.pageEnd,
     timestamp: evidence.chunk.timestamp,
     excerpt: evidence.chunk.text.slice(0, 900),
-    relevanceScore: Number(evidence.score.toFixed(3))
+    relevanceScore: Number(evidence.score.toFixed(3)),
+    chunkIndex: evidence.chunk.index,
+    charStart: evidence.chunk.charStart,
+    charEnd: evidence.chunk.charEnd
   };
 }
