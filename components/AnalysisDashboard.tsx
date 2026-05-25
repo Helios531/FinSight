@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, BarChart3, CheckCircle2, FileSearch, Scale } from "lucide-react";
+import { AlertTriangle, BarChart3, Bell, CheckCircle2, FileSearch, Scale } from "lucide-react";
 import { AgentSection } from "@/components/AgentSection";
 import { EvidenceDrawer } from "@/components/EvidenceDrawer";
 import { ObservabilityPanel } from "@/components/ObservabilityPanel";
@@ -141,6 +141,39 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
         </Panel>
       ) : null}
 
+      {report.watchlist ? (
+        <Panel title="Watchlist Alerts" icon={<Bell className="h-4 w-4" aria-hidden />}>
+          <div className="grid gap-4 xl:grid-cols-[220px_1fr]">
+            <div className="border-b border-ink-100 pb-3 xl:border-b-0 xl:border-r xl:pb-0 xl:pr-4">
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Tracked</h3>
+              <p className="mt-1 text-sm font-semibold">{report.watchlist.companyName}</p>
+              <p className="mt-1 text-xs text-ink-600">
+                {report.watchlist.trackedCompanyCount} company track(s), {report.watchlist.unacknowledgedCount} open alert(s)
+              </p>
+            </div>
+            <div className="grid gap-2 md:grid-cols-2">
+              {report.watchlist.alerts.slice(0, 6).map((alert) => (
+                <div key={alert.id} className="rounded border border-ink-200 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="font-mono text-[11px] uppercase text-ink-500">{alert.category.replace("_", " ")}</span>
+                      <h3 className="mt-1 text-sm font-semibold">{alert.title}</h3>
+                    </div>
+                    <Severity severity={alert.severity} />
+                  </div>
+                  <p className="mt-2 text-xs text-ink-700">{alert.message}</p>
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {alert.citations.slice(0, 2).map((citation) => (
+                      <CitationButton key={citation.id} citation={citation} onCitation={setSelectedCitation} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Panel>
+      ) : null}
+
       <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
         <Panel title="Areas of Disagreement" icon={<Scale className="h-4 w-4" aria-hidden />}>
           <div className="space-y-3">
@@ -207,6 +240,21 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
       <ObservabilityPanel traces={report.traces} />
       <EvidenceDrawer citation={selectedCitation} onClose={() => setSelectedCitation(null)} />
     </section>
+  );
+}
+
+function Severity({ severity }: { severity: "info" | "medium" | "high" }) {
+  const className =
+    severity === "high"
+      ? "border-signal-red/30 text-signal-red"
+      : severity === "medium"
+        ? "border-signal-amber/30 text-signal-amber"
+        : "border-ink-200 text-ink-500";
+
+  return (
+    <span className={`rounded border px-2 py-1 font-mono text-[11px] uppercase ${className}`}>
+      {severity}
+    </span>
   );
 }
 

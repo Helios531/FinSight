@@ -8,6 +8,7 @@ import { indexChunks } from "@/retrieval/indexing";
 import { InMemoryVectorStore } from "@/retrieval/store";
 import { runAnalysisWorkflow } from "@/agents/workflow";
 import { rememberCompanyAnalysis } from "@/memory/company";
+import { updateWatchlistForAnalysis } from "@/memory/watchlist";
 
 export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
   const document = await parseUploadedDocument(file, kind);
@@ -39,6 +40,11 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     chunkCount: chunks.length
   });
   report.companyMemory = await rememberCompanyAnalysis({ document, report });
+  report.watchlist = await updateWatchlistForAnalysis({
+    document,
+    report,
+    memory: report.companyMemory
+  });
 
   logger.info("document.analysis_completed", {
     documentId: document.id,
@@ -48,7 +54,8 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     store: usePgVector ? "pgvector" : "memory",
     confidence: report.confidence.score,
     companyId: report.companyMemory.companyId,
-    companyFilingCount: report.companyMemory.filingCount
+    companyFilingCount: report.companyMemory.filingCount,
+    watchlistAlerts: report.watchlist.alertCount
   });
 
   return report;

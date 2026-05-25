@@ -133,6 +133,33 @@ export type CompanyMemorySummary = {
   historicalMetrics: CompanyMemoryMetric[];
 };
 
+export type WatchlistAlertCategory = "company" | "filing" | "earnings" | "risk_change" | "confidence";
+
+export type WatchlistAlertSeverity = "info" | "medium" | "high";
+
+export type WatchlistAlert = {
+  id: string;
+  companyId: string;
+  category: WatchlistAlertCategory;
+  severity: WatchlistAlertSeverity;
+  title: string;
+  message: string;
+  documentId: string;
+  createdAt: string;
+  acknowledged: boolean;
+  citations: EvidenceCitation[];
+};
+
+export type WatchlistSummary = {
+  watchlistId: string;
+  companyId: string;
+  companyName: string;
+  trackedCompanyCount: number;
+  alertCount: number;
+  unacknowledgedCount: number;
+  alerts: WatchlistAlert[];
+};
+
 export type AnalysisReport = {
   document: {
     id: string;
@@ -163,6 +190,7 @@ export type AnalysisReport = {
   }[];
   debateAssessment: DebateAssessment;
   companyMemory?: CompanyMemorySummary;
+  watchlist?: WatchlistSummary;
   finalVerdict: {
     stance: "Constructive" | "Cautious" | "Mixed" | "Insufficient Evidence";
     rationale: string;

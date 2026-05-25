@@ -91,3 +91,38 @@ create index if not exists company_filings_company_idx on company_filings(compan
 create index if not exists company_risks_company_idx on company_risks(company_id, occurrence_count desc, last_seen_at desc);
 create index if not exists company_claims_company_idx on company_claims(company_id, last_seen_at desc);
 create index if not exists company_metrics_company_idx on company_metrics(company_id, last_seen_at desc);
+
+create table if not exists watchlists (
+  id text primary key,
+  name text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists watchlist_companies (
+  watchlist_id text not null references watchlists(id) on delete cascade,
+  company_id text not null references companies(id) on delete cascade,
+  company_name text not null,
+  tracked_at timestamptz not null default now(),
+  last_document_id uuid,
+  last_checked_at timestamptz,
+  primary key (watchlist_id, company_id)
+);
+
+create table if not exists watchlist_alerts (
+  id text primary key,
+  watchlist_id text not null references watchlists(id) on delete cascade,
+  company_id text not null references companies(id) on delete cascade,
+  category text not null,
+  severity text not null,
+  title text not null,
+  message text not null,
+  document_id uuid not null references documents(id) on delete cascade,
+  created_at timestamptz not null,
+  acknowledged boolean not null default false,
+  citations jsonb not null default '[]'::jsonb
+);
+
+create index if not exists watchlist_companies_watchlist_idx on watchlist_companies(watchlist_id, tracked_at desc);
+create index if not exists watchlist_alerts_watchlist_idx on watchlist_alerts(watchlist_id, created_at desc);
+create index if not exists watchlist_alerts_company_idx on watchlist_alerts(company_id, created_at desc);
