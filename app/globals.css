@@ -29,3 +29,17 @@ select {
 ::selection {
   background: rgba(37, 99, 235, 0.18);
 }
+
+html body svg.lucide {
+  display: inline-block !important;
+  flex-shrink: 0;
+  filter: none !important;
+  -webkit-filter: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+html body svg.lucide * {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
