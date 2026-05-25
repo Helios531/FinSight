@@ -89,6 +89,58 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
         </div>
       </Panel>
 
+      {report.companyMemory ? (
+        <Panel title="Company Memory" icon={<FileSearch className="h-4 w-4" aria-hidden />}>
+          <div className="grid gap-4 xl:grid-cols-3">
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Filings</h3>
+              <p className="mt-1 text-sm font-semibold">{report.companyMemory.companyName}</p>
+              <p className="text-xs text-ink-500">{report.companyMemory.filingCount} remembered filing(s)</p>
+              <ul className="mt-3 space-y-2 text-xs text-ink-700">
+                {report.companyMemory.pastFilings.slice(0, 4).map((filing) => (
+                  <li key={filing.documentId} className="border-b border-ink-100 pb-2">
+                    <span className="block truncate font-medium">{filing.filename}</span>
+                    <span className="font-mono text-ink-500">{filing.kind}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Recurring Risks</h3>
+              <div className="mt-2 space-y-2">
+                {report.companyMemory.recurringRisks.slice(0, 5).map((risk) => (
+                  <div key={risk.theme} className="border-b border-ink-100 pb-2">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="font-medium">{risk.label}</span>
+                      <span className="font-mono text-xs text-ink-500">{risk.occurrenceCount}x</span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {risk.citations.slice(0, 2).map((citation) => (
+                        <CitationButton key={citation.id} citation={citation} onCitation={setSelectedCitation} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Historical Metrics</h3>
+              <div className="mt-2 space-y-2">
+                {report.companyMemory.historicalMetrics.slice(0, 5).map((metric) => (
+                  <div key={`${metric.label}-${metric.value}-${metric.period ?? ""}`} className="border-b border-ink-100 pb-2">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="font-medium">{metric.label}</span>
+                      <span className="font-mono text-xs">{metric.value}</span>
+                    </div>
+                    <p className="text-xs text-ink-500">{metric.period ?? "Not stated"}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Panel>
+      ) : null}
+
       <div className="grid gap-4 xl:grid-cols-[1fr_420px]">
         <Panel title="Areas of Disagreement" icon={<Scale className="h-4 w-4" aria-hidden />}>
           <div className="space-y-3">

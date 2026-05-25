@@ -83,6 +83,56 @@ export type DebateAssessment = {
   findings: string[];
 };
 
+export type CompanyMemoryRisk = {
+  theme: string;
+  label: string;
+  firstSeenDocumentId: string;
+  lastSeenDocumentId: string;
+  occurrenceCount: number;
+  lastSeenAt: string;
+  citations: EvidenceCitation[];
+};
+
+export type CompanyMemoryClaim = {
+  id: string;
+  claim: string;
+  polarity: ClaimPolarity;
+  firstSeenDocumentId: string;
+  lastSeenDocumentId: string;
+  occurrenceCount: number;
+  lastSeenAt: string;
+  citations: EvidenceCitation[];
+};
+
+export type CompanyMemoryMetric = {
+  label: string;
+  value: string;
+  period?: string;
+  firstSeenDocumentId: string;
+  lastSeenDocumentId: string;
+  occurrenceCount: number;
+  lastSeenAt: string;
+  citations: EvidenceCitation[];
+};
+
+export type CompanyMemorySummary = {
+  companyId: string;
+  companyName: string;
+  filingCount: number;
+  latestDocumentId: string;
+  latestDocumentFilename: string;
+  lastUpdatedAt: string;
+  pastFilings: Array<{
+    documentId: string;
+    filename: string;
+    kind: DocumentKind;
+    processedAt: string;
+  }>;
+  recurringRisks: CompanyMemoryRisk[];
+  managementClaims: CompanyMemoryClaim[];
+  historicalMetrics: CompanyMemoryMetric[];
+};
+
 export type AnalysisReport = {
   document: {
     id: string;
@@ -112,6 +162,7 @@ export type AnalysisReport = {
     citations: EvidenceCitation[];
   }[];
   debateAssessment: DebateAssessment;
+  companyMemory?: CompanyMemorySummary;
   finalVerdict: {
     stance: "Constructive" | "Cautious" | "Mixed" | "Insufficient Evidence";
     rationale: string;
