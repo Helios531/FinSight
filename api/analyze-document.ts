@@ -9,6 +9,7 @@ import { indexChunks } from "@/retrieval/indexing";
 import { InMemoryVectorStore } from "@/retrieval/store";
 import { runAnalysisWorkflow } from "@/agents/workflow";
 import { rememberCompanyAnalysis } from "@/memory/company";
+import { createCrossCompanyIntelligence } from "@/memory/cross-company";
 import { updatePortfolioForAnalysis } from "@/memory/portfolio";
 import { updateWatchlistForAnalysis } from "@/memory/watchlist";
 import { createAnalystWorkspace } from "@/workspace/analyst";
@@ -52,6 +53,7 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     memory: report.companyMemory,
     watchlist: report.watchlist
   });
+  report.crossCompany = await createCrossCompanyIntelligence(report.portfolio);
   report.workspace = await createAnalystWorkspace(report);
   report.compliance = await createComplianceSummary(report);
 
@@ -67,6 +69,8 @@ export async function analyzeUploadedDocument(file: File, kind: DocumentKind) {
     watchlistAlerts: report.watchlist.alertCount,
     portfolioCompanies: report.portfolio.companyCount,
     portfolioOverlappingRisks: report.portfolio.overlappingRisks.length,
+    crossCompanyComparisons: report.crossCompany.competitorComparisons.length,
+    macroExposures: report.crossCompany.macroExposures.length,
     workspaceId: report.workspace.workspaceId,
     savedFindings: report.workspace.savedFindings.length,
     auditId: report.compliance.auditId,

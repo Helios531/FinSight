@@ -210,6 +210,52 @@ export type PortfolioIntelligenceSummary = {
   updatedAt: string;
 };
 
+export type CompetitorComparison = {
+  id: string;
+  sector: string;
+  companies: string[];
+  sharedRisks: string[];
+  alertSpread: number;
+  assessment: string;
+};
+
+export type SectorTrendSignal = {
+  sector: string;
+  companyCount: number;
+  alertPressure: number;
+  dominantRisks: string[];
+  trend: "rising_risk" | "stable" | "insufficient_data";
+};
+
+export type IndustryTrendSignal = {
+  theme: string;
+  label: string;
+  companyCount: number;
+  affectedSectors: string[];
+  severity: WatchlistAlertSeverity;
+  citations: EvidenceCitation[];
+};
+
+export type MacroExposureSignal = {
+  factor: "rates" | "demand" | "supply_chain" | "regulatory" | "liquidity" | "fx" | "energy";
+  label: string;
+  companies: string[];
+  severity: WatchlistAlertSeverity;
+  evidence: string[];
+  citations: EvidenceCitation[];
+};
+
+export type CrossCompanyIntelligenceSummary = {
+  id: string;
+  portfolioId: string;
+  generatedAt: string;
+  competitorComparisons: CompetitorComparison[];
+  sectorTrends: SectorTrendSignal[];
+  industryTrends: IndustryTrendSignal[];
+  macroExposures: MacroExposureSignal[];
+  limitations: string[];
+};
+
 export type WorkspaceAnnotation = {
   id: string;
   documentId: string;
@@ -324,6 +370,7 @@ export type AnalysisReport = {
   companyMemory?: CompanyMemorySummary;
   watchlist?: WatchlistSummary;
   portfolio?: PortfolioIntelligenceSummary;
+  crossCompany?: CrossCompanyIntelligenceSummary;
   workspace?: AnalystWorkspaceSummary;
   compliance?: ComplianceSummary;
   finalVerdict: {

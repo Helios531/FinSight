@@ -250,6 +250,97 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
         </Panel>
       ) : null}
 
+      {report.crossCompany ? (
+        <Panel title="Cross-Company Intelligence" icon={<Scale className="h-4 w-4" aria-hidden />}>
+          <div className="grid gap-4 xl:grid-cols-[1fr_1fr_1fr]">
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Competitors</h3>
+              <div className="mt-2 space-y-2">
+                {report.crossCompany.competitorComparisons.slice(0, 5).map((comparison) => (
+                  <div key={comparison.id} className="border-b border-ink-100 pb-2">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="truncate font-medium">{comparison.companies.join(" / ")}</span>
+                      <span className="font-mono text-xs text-ink-500">{comparison.sector}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-ink-700">{comparison.assessment}</p>
+                    {comparison.sharedRisks.length > 0 ? (
+                      <p className="mt-1 truncate text-xs text-ink-500">{comparison.sharedRisks.join(", ")}</p>
+                    ) : null}
+                  </div>
+                ))}
+                {report.crossCompany.competitorComparisons.length === 0 ? (
+                  <p className="text-xs text-ink-500">Add more same-sector companies to compare competitors.</p>
+                ) : null}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Sector Trends</h3>
+              <div className="mt-2 space-y-2">
+                {report.crossCompany.sectorTrends.slice(0, 6).map((trend) => (
+                  <div key={trend.sector} className="border-b border-ink-100 pb-2">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="font-medium">{trend.sector}</span>
+                      <span className="font-mono text-xs text-ink-500">{trend.trend.replace("_", " ")}</span>
+                    </div>
+                    <p className="text-xs text-ink-500">
+                      {trend.companyCount} companies · alert pressure {trend.alertPressure}
+                    </p>
+                    {trend.dominantRisks.length > 0 ? (
+                      <p className="mt-1 truncate text-xs text-ink-700">{trend.dominantRisks.join(", ")}</p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Macro Exposure</h3>
+              <div className="mt-2 space-y-2">
+                {report.crossCompany.macroExposures.slice(0, 6).map((exposure) => (
+                  <div key={exposure.factor} className="border-b border-ink-100 pb-2">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <span className="font-medium">{exposure.label}</span>
+                      <Severity severity={exposure.severity} />
+                    </div>
+                    <p className="text-xs text-ink-500">{exposure.companies.join(", ")}</p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {exposure.citations.slice(0, 2).map((citation) => (
+                        <CitationButton key={citation.id} citation={citation} onCitation={setSelectedCitation} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {report.crossCompany.macroExposures.length === 0 ? (
+                  <p className="text-xs text-ink-500">No macro exposure cluster detected yet.</p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+          {report.crossCompany.industryTrends.length > 0 ? (
+            <div className="mt-4 border-t border-ink-100 pt-3">
+              <h3 className="text-xs font-semibold uppercase text-ink-500">Industry Trends</h3>
+              <div className="mt-2 grid gap-2 md:grid-cols-2">
+                {report.crossCompany.industryTrends.slice(0, 4).map((trend) => (
+                  <div key={trend.theme} className="rounded border border-ink-200 p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="text-sm font-semibold">{trend.label}</h4>
+                      <Severity severity={trend.severity} />
+                    </div>
+                    <p className="mt-2 text-xs text-ink-700">
+                      {trend.companyCount} companies across {trend.affectedSectors.join(", ")}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {trend.citations.slice(0, 2).map((citation) => (
+                        <CitationButton key={citation.id} citation={citation} onCitation={setSelectedCitation} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </Panel>
+      ) : null}
+
       {report.workspace ? (
         <Panel title="Analyst Workspace" icon={<FileSearch className="h-4 w-4" aria-hidden />}>
           <div className="grid gap-4 xl:grid-cols-[1fr_1fr_260px]">

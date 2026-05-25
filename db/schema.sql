@@ -150,6 +150,20 @@ create table if not exists portfolio_companies (
 
 create index if not exists portfolio_companies_portfolio_idx on portfolio_companies(portfolio_id, sector, company_name);
 
+create table if not exists cross_company_intelligence (
+  id text primary key,
+  portfolio_id text not null references portfolios(id) on delete cascade,
+  generated_at timestamptz not null,
+  competitor_comparisons jsonb not null default '[]'::jsonb,
+  sector_trends jsonb not null default '[]'::jsonb,
+  industry_trends jsonb not null default '[]'::jsonb,
+  macro_exposures jsonb not null default '[]'::jsonb,
+  limitations jsonb not null default '[]'::jsonb
+);
+
+create index if not exists cross_company_intelligence_portfolio_idx
+  on cross_company_intelligence(portfolio_id, generated_at desc);
+
 create table if not exists analyst_workspaces (
   id text primary key,
   document_id uuid not null references documents(id) on delete cascade,

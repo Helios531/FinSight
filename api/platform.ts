@@ -76,6 +76,16 @@ export function reportResourceEnvelope(report: AnalysisReport) {
           concentrationSignals: report.portfolio.concentrationSignals
         }
         : null,
+      crossCompany: report.crossCompany
+        ? {
+          id: report.crossCompany.id,
+          competitorComparisons: report.crossCompany.competitorComparisons,
+          sectorTrends: report.crossCompany.sectorTrends,
+          industryTrends: report.crossCompany.industryTrends,
+          macroExposures: report.crossCompany.macroExposures,
+          limitations: report.crossCompany.limitations
+        }
+        : null,
       workspace: report.workspace
         ? {
           workspaceId: report.workspace.workspaceId,
