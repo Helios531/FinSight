@@ -1,4 +1,5 @@
 import { dedupeCitations, meanScore, stableClaimId } from "@/agents/common";
+import { analyzeDebate } from "@/agents/debate";
 import type { RefereeInput } from "@/agents/types";
 import type { AgentClaim, AnalysisReport, EvidenceCitation, KeyMetric } from "@/lib/types";
 import { scoreConfidence } from "@/scoring/confidence";
@@ -15,15 +16,25 @@ export function runRefereeAgent({
   startedAt: number;
 }): AnalysisReport {
   const allClaims = [...input.bull.claims, ...input.bear.claims, ...input.risk.claims];
-  const disagreements = buildDisagreements(input.bull.claims, [...input.bear.claims, ...input.risk.claims]);
+  const debate = analyzeDebate({
+    bull: input.bull.claims,
+    bear: input.bear.claims,
+    risk: input.risk.claims
+  });
+  const disagreements = debate.disagreements.length > 0
+    ? debate.disagreements
+    : buildFallbackDisagreements(input.bull.claims, [...input.bear.claims, ...input.risk.claims]);
   const allEvidence = [...input.bull.evidence, ...input.bear.evidence, ...input.risk.evidence];
   const meanRetrievalScore = meanScore(allEvidence);
   const confidence = scoreConfidence({
     claims: allClaims,
     keyMetrics,
     contradictionCount: disagreements.length,
+    contradictionScore: debate.assessment.contradictionScore,
     meanRetrievalScore,
-    agentConsensus: estimateConsensus(input.bull.claims, input.bear.claims, input.risk.claims)
+    agentConsensus: debate.assessment.consensusScore,
+    evidenceWeight: debate.assessment.evidenceWeight,
+    confidenceCalibration: debate.assessment.confidenceCalibration
   });
 
   const citations = dedupeCitations([
@@ -32,7 +43,7 @@ export function runRefereeAgent({
     ...keyMetrics.flatMap((metric) => metric.citations)
   ]).slice(0, 24);
 
-  const finalVerdict = buildVerdict(input.bull.claims, input.bear.claims, input.risk.claims, citations);
+  const finalVerdict = buildVerdict(input.bull.claims, input.bear.claims, input.risk.claims, citations, debate.assessment);
 
   return {
     document,
@@ -44,6 +55,7 @@ export function runRefereeAgent({
     confidence,
     citations,
     disagreements,
+    debateAssessment: debate.assessment,
     finalVerdict,
     traces: [
       input.bull.trace,
@@ -59,7 +71,7 @@ export function runRefereeAgent({
   };
 }
 
-function buildDisagreements(bullClaims: AgentClaim[], counterClaims: AgentClaim[]) {
+function buildFallbackDisagreements(bullClaims: AgentClaim[], counterClaims: AgentClaim[]) {
   const bull = bullClaims[0];
   const counter = counterClaims[0];
   if (!bull || !counter) return [];
@@ -71,6 +83,9 @@ function buildDisagreements(bullClaims: AgentClaim[], counterClaims: AgentClaim[
       bearOrRiskPosition: counter.claim,
       refereeAssessment:
         "Both positions are retained because each is grounded in retrieved excerpts. The referee does not net them into a single unsupported directional call.",
+      contradictionScore: 0.25,
+      evidenceWeight: meanEvidenceWeight([bull, counter]),
+      confidenceImpact: 0.08,
       citations: dedupeCitations([...bull.citations, ...counter.citations])
     }
   ].map((item) => ({
@@ -83,16 +98,25 @@ function buildVerdict(
   bullClaims: AgentClaim[],
   bearClaims: AgentClaim[],
   riskClaims: AgentClaim[],
-  citations: EvidenceCitation[]
+  citations: EvidenceCitation[],
+  debateAssessment: AnalysisReport["debateAssessment"]
 ): AnalysisReport["finalVerdict"] {
   const bullScore = averageConfidence(bullClaims);
   const bearRiskScore = averageConfidence([...bearClaims, ...riskClaims]);
+  const calibratedBull = calibratedAgentConfidence(debateAssessment, "bull", bullScore);
+  const calibratedBearRisk = average([
+    calibratedAgentConfidence(debateAssessment, "bear", averageConfidence(bearClaims)),
+    calibratedAgentConfidence(debateAssessment, "risk", averageConfidence(riskClaims))
+  ]);
+  const contradictionBuffer = debateAssessment.contradictionScore > 0.5 ? 0.22 : 0.15;
   const stance =
     citations.length === 0
       ? "Insufficient Evidence"
-      : bullScore > bearRiskScore + 0.15
+      : debateAssessment.evidenceWeight < 0.22
+        ? "Insufficient Evidence"
+        : calibratedBull > calibratedBearRisk + contradictionBuffer
         ? "Constructive"
-        : bearRiskScore > bullScore + 0.15
+        : calibratedBearRisk > calibratedBull + contradictionBuffer
           ? "Cautious"
           : "Mixed";
 
@@ -101,7 +125,7 @@ function buildVerdict(
     rationale:
       stance === "Insufficient Evidence"
         ? "The system did not retrieve enough cited evidence to support a verdict."
-        : "The verdict reflects cited agent findings, unresolved disagreements, retrieval quality, and numeric verification outcomes.",
+        : `The verdict reflects cited agent findings, contradiction score (${Math.round(debateAssessment.contradictionScore * 100)}%), evidence weight (${Math.round(debateAssessment.evidenceWeight * 100)}%), consensus (${Math.round(debateAssessment.consensusScore * 100)}%), and numeric verification outcomes.`,
     citations: citations.slice(0, 3)
   };
 }
@@ -125,7 +149,7 @@ function buildExecutiveSummary(
       id: stableClaimId("Audit posture", "Important conclusions are limited to retrieved excerpts.", citations.slice(0, 2)),
       title: "Audit posture",
       claim:
-        "Important conclusions are limited to retrieved excerpts, and numeric claims are flagged when independent recalculation is unavailable.",
+        "Important conclusions are limited to retrieved excerpts; numeric claims are flagged when recalculation is unavailable, and disagreements are scored for contradiction, evidence weight, and confidence impact.",
       polarity: "neutral",
       confidence: confidence.score / 100,
       citations: citations.slice(0, 2),
@@ -134,13 +158,26 @@ function buildExecutiveSummary(
   ];
 }
 
-function estimateConsensus(bullClaims: AgentClaim[], bearClaims: AgentClaim[], riskClaims: AgentClaim[]) {
-  const average = averageConfidence([...bullClaims, ...bearClaims, ...riskClaims]);
-  const spread = Math.abs(averageConfidence(bullClaims) - averageConfidence([...bearClaims, ...riskClaims]));
-  return Math.max(0, Math.min(1, average - spread / 2));
-}
-
 function averageConfidence(claims: AgentClaim[]) {
   if (claims.length === 0) return 0;
   return claims.reduce((sum, claim) => sum + claim.confidence, 0) / claims.length;
+}
+
+function calibratedAgentConfidence(
+  debateAssessment: AnalysisReport["debateAssessment"],
+  agent: "bull" | "bear" | "risk",
+  fallback: number
+) {
+  return debateAssessment.agentScores.find((score) => score.agent === agent)?.calibratedConfidence ?? fallback;
+}
+
+function meanEvidenceWeight(claims: AgentClaim[]) {
+  const citations = claims.flatMap((claim) => claim.citations);
+  if (citations.length === 0) return 0;
+  return citations.reduce((sum, citation) => sum + citation.relevanceScore, 0) / citations.length;
+}
+
+function average(values: number[]) {
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
 }

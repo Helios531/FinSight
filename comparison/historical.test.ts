@@ -255,6 +255,14 @@ function report(
     },
     citations: [],
     disagreements: [],
+    debateAssessment: {
+      contradictionScore: 0,
+      evidenceWeight: 0.7,
+      consensusScore: 0.7,
+      confidenceCalibration: 0.6,
+      agentScores: [],
+      findings: []
+    },
     finalVerdict: {
       stance: "Mixed",
       rationale: "test",

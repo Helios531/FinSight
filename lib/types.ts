@@ -65,6 +65,24 @@ export type ConfidenceAssessment = {
   reductions: string[];
 };
 
+export type DebateAgentScore = {
+  agent: "bull" | "bear" | "risk";
+  claimCount: number;
+  averageConfidence: number;
+  evidenceWeight: number;
+  calibratedConfidence: number;
+  citationCoverage: number;
+};
+
+export type DebateAssessment = {
+  contradictionScore: number;
+  evidenceWeight: number;
+  consensusScore: number;
+  confidenceCalibration: number;
+  agentScores: DebateAgentScore[];
+  findings: string[];
+};
+
 export type AnalysisReport = {
   document: {
     id: string;
@@ -88,8 +106,12 @@ export type AnalysisReport = {
     bullPosition: string;
     bearOrRiskPosition: string;
     refereeAssessment: string;
+    contradictionScore: number;
+    evidenceWeight: number;
+    confidenceImpact: number;
     citations: EvidenceCitation[];
   }[];
+  debateAssessment: DebateAssessment;
   finalVerdict: {
     stance: "Constructive" | "Cautious" | "Mixed" | "Insufficient Evidence";
     rationale: string;

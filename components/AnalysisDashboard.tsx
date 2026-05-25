@@ -98,6 +98,11 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
                 <p className="mt-2 text-xs text-signal-green">{item.bullPosition}</p>
                 <p className="mt-1 text-xs text-signal-red">{item.bearOrRiskPosition}</p>
                 <p className="mt-2 text-sm text-ink-700">{item.refereeAssessment}</p>
+                <div className="mt-3 grid grid-cols-3 gap-2 border-t border-ink-100 pt-2 text-[11px]">
+                  <Signal label="Contradiction" value={item.contradictionScore} />
+                  <Signal label="Evidence" value={item.evidenceWeight} />
+                  <Signal label="Impact" value={item.confidenceImpact} />
+                </div>
                 <div className="mt-2 flex flex-wrap gap-1">
                   {item.citations.map((citation) => (
                     <CitationButton key={citation.id} citation={citation} onCitation={setSelectedCitation} />
@@ -110,6 +115,12 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
         <Panel title="Confidence Assessment" icon={<CheckCircle2 className="h-4 w-4" aria-hidden />}>
           <div className="text-4xl font-semibold">{report.confidence.score}%</div>
           <p className="mt-1 text-sm font-medium">{report.confidence.label}</p>
+          <div className="mt-4 grid grid-cols-2 gap-2 border-y border-ink-100 py-3 text-xs">
+            <Signal label="Contradiction" value={report.debateAssessment.contradictionScore} />
+            <Signal label="Evidence Weight" value={report.debateAssessment.evidenceWeight} />
+            <Signal label="Consensus" value={report.debateAssessment.consensusScore} />
+            <Signal label="Calibration" value={report.debateAssessment.confidenceCalibration} />
+          </div>
           <h3 className="mt-4 text-xs font-semibold uppercase text-ink-500">Drivers</h3>
           <ul className="mt-2 space-y-1 text-sm text-ink-700">
             {report.confidence.drivers.map((driver) => (
@@ -144,6 +155,15 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
       <ObservabilityPanel traces={report.traces} />
       <EvidenceDrawer citation={selectedCitation} onClose={() => setSelectedCitation(null)} />
     </section>
+  );
+}
+
+function Signal({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="min-w-0">
+      <span className="block truncate font-mono uppercase text-ink-500">{label}</span>
+      <span className="mt-1 block font-semibold text-ink-800">{Math.round(value * 100)}%</span>
+    </div>
   );
 }
 
