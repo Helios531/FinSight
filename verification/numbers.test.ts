@@ -12,6 +12,13 @@ describe("verifyGrowthStatement", () => {
     });
   });
 
+  it("verifies verb-first growth phrasing", () => {
+    const result = verifyGrowthStatement("Revenue increased 18% from $100 million to $118 million.");
+
+    expect(result?.status).toBe("verified");
+    expect(result?.computedValue).toBe("18.0%");
+  });
+
   it("flags inconsistent reported growth", () => {
     const result = verifyGrowthStatement("Revenue saw 18% growth from $100 million to $130 million.");
 

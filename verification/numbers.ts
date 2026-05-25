@@ -39,9 +39,11 @@ export function extractKeyMetrics(evidence: RetrievedEvidence[]): KeyMetric[] {
 }
 
 export function verifyGrowthStatement(text: string) {
-  const pattern =
+  const percentFirstPattern =
     /(?<reported>-?\d+(?:\.\d+)?)\s*%\s+(?:increase|decrease|growth|decline|up|down).*?\bfrom\s+\$?(?<prior>-?\d+(?:\.\d+)?)\s*(?<priorUnit>billion|million|bn|m)?\s+to\s+\$?(?<current>-?\d+(?:\.\d+)?)\s*(?<currentUnit>billion|million|bn|m)?/i;
-  const match = text.match(pattern);
+  const verbFirstPattern =
+    /(?:increase|increased|decrease|decreased|growth|grew|decline|declined|up|down)\s+(?<reported>-?\d+(?:\.\d+)?)\s*%.*?\bfrom\s+\$?(?<prior>-?\d+(?:\.\d+)?)\s*(?<priorUnit>billion|million|bn|m)?\s+to\s+\$?(?<current>-?\d+(?:\.\d+)?)\s*(?<currentUnit>billion|million|bn|m)?/i;
+  const match = text.match(percentFirstPattern) ?? text.match(verbFirstPattern);
 
   if (!match?.groups) return null;
 

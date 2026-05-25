@@ -6,6 +6,7 @@ import { validateAnalysisReport } from "@/agents/validation";
 import type { AnalysisReport } from "@/lib/types";
 import type { ParsedDocument } from "@/parsers/types";
 import { evidenceToCitation, type VectorStore } from "@/retrieval/store";
+import { extractStructuredFinancials, structuredMetricsToKeyMetrics } from "@/verification/financial-extraction";
 import { extractKeyMetrics } from "@/verification/numbers";
 
 export async function runAnalysisWorkflow({
@@ -18,11 +19,15 @@ export async function runAnalysisWorkflow({
   chunkCount: number;
 }): Promise<AnalysisReport> {
   const metricEvidence = await store.search(
-    "revenue margin cash flow debt liquidity eps percentage growth decrease increase",
-    10,
+    "income statement balance sheet cash flow revenue margin debt assets liabilities guidance outlook risk factors liquidity eps percentage growth decrease increase",
+    16,
     { documentId: document.id, minScore: 0.16 }
   );
-  const keyMetrics = extractKeyMetrics(metricEvidence);
+  const structuredFinancials = extractStructuredFinancials(metricEvidence);
+  const keyMetrics = mergeKeyMetrics([
+    ...structuredMetricsToKeyMetrics(structuredFinancials),
+    ...extractKeyMetrics(metricEvidence)
+  ]);
   const context = {
     documentId: document.id,
     filename: document.filename,
@@ -55,4 +60,14 @@ export async function runAnalysisWorkflow({
     },
     startedAt: Date.now()
   }));
+}
+
+function mergeKeyMetrics(metrics: ReturnType<typeof extractKeyMetrics>) {
+  const seen = new Set<string>();
+  return metrics.filter((metric) => {
+    const key = `${metric.label}:${metric.value}:${metric.citations[0]?.id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 12);
 }
