@@ -12,9 +12,11 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
 
   if (!report) {
     return (
-      <section className="flex min-h-[680px] items-center justify-center rounded border border-ink-200 bg-white p-6 text-center shadow-hairline">
+      <section className="flex min-h-[680px] items-center justify-center rounded-lg border border-ink-200 bg-white p-6 text-center shadow-elevated">
         <div className="max-w-md">
-          <FileSearch className="mx-auto h-9 w-9 text-ink-400" aria-hidden />
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg border border-luxury-gold/30 bg-luxury-pearl">
+            <FileSearch className="h-7 w-7 text-luxury-gold" aria-hidden />
+          </div>
           <h2 className="mt-3 text-lg font-semibold">No analysis generated</h2>
           <p className="mt-2 text-sm text-ink-600">
             Upload an earnings call transcript or SEC filing to run grounded retrieval,
@@ -662,10 +664,10 @@ export function AnalysisDashboard({ report }: { report: AnalysisReport | null })
 function Severity({ severity }: { severity: "info" | "medium" | "high" }) {
   const className =
     severity === "high"
-      ? "border-signal-red/30 text-signal-red"
+      ? "border-signal-red/25 bg-signal-red/5 text-signal-red"
       : severity === "medium"
-        ? "border-signal-amber/30 text-signal-amber"
-        : "border-ink-200 text-ink-500";
+        ? "border-signal-amber/25 bg-signal-amber/5 text-signal-amber"
+        : "border-ink-200 bg-ink-50 text-ink-500";
 
   return (
     <span className={`rounded border px-2 py-1 font-mono text-[11px] uppercase ${className}`}>
@@ -685,9 +687,9 @@ function Signal({ label, value }: { label: string; value: number }) {
 
 function Panel({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="rounded border border-ink-200 bg-white p-4 shadow-hairline">
+    <section className="rounded-lg border border-ink-200 bg-white p-4 shadow-elevated">
       <div className="mb-3 flex items-center gap-2 border-b border-ink-200 pb-3">
-        {icon}
+        <span className="text-luxury-gold">{icon}</span>
         <h2 className="text-sm font-semibold">{title}</h2>
       </div>
       {children}
@@ -697,7 +699,7 @@ function Panel({ title, icon, children }: { title: string; icon: React.ReactNode
 
 function StatusTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded border border-ink-200 bg-white p-3 shadow-hairline">
+    <div className="min-w-0 rounded-lg border border-ink-200 bg-white p-3 shadow-elevated">
       <span className="font-mono text-xs uppercase text-ink-500">{label}</span>
       <p className="mt-1 truncate text-sm font-semibold">{value}</p>
     </div>
@@ -714,7 +716,7 @@ function ClaimRow({
   onCitation: (citation: EvidenceCitation) => void;
 }) {
   return (
-    <div className="rounded border border-ink-200 p-3">
+    <div className="rounded-lg border border-ink-200 bg-luxury-pearl p-3">
       <p className="text-sm text-ink-800">{claim}</p>
       <div className="mt-2 flex flex-wrap gap-1">
         {citations.map((citation) => (
@@ -736,7 +738,7 @@ function CitationButton({
     <button
       type="button"
       onClick={() => onCitation(citation)}
-      className="mr-1 inline-flex rounded border border-ink-200 px-2 py-1 font-mono text-[11px] text-ink-600 hover:border-ink-500"
+      className="mr-1 inline-flex rounded border border-ink-200 bg-white px-2 py-1 font-mono text-[11px] text-ink-600 hover:border-luxury-gold hover:text-ink-950"
     >
       {citation.section}
       {citation.page

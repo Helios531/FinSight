@@ -61,17 +61,25 @@ export function UploadPanel({ onReport, onStage, onError }: UploadPanelProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded border border-ink-200 bg-white p-4 shadow-hairline">
-      <div className="flex items-center gap-2 border-b border-ink-200 pb-3">
-        <FileText className="h-4 w-4 text-ink-600" aria-hidden />
-        <h2 className="text-sm font-semibold">Document Intake</h2>
+    <form onSubmit={handleSubmit} className="overflow-hidden rounded-lg border border-ink-200 bg-white shadow-elevated">
+      <div className="border-b border-ink-200 bg-luxury-graphite px-4 py-4 text-white">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-luxury-gold/35 bg-white/5">
+            <FileText className="h-4 w-4 text-luxury-gold" aria-hidden />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold">Document Intake</h2>
+            <p className="mt-1 text-xs text-white/55">Upload, classify, and run grounded analysis.</p>
+          </div>
+        </div>
       </div>
 
-      <label className="mt-4 block text-xs font-medium uppercase text-ink-500">Document type</label>
+      <div className="p-4">
+      <label className="block text-xs font-medium uppercase text-ink-500">Document type</label>
       <select
         value={documentKind}
         onChange={(event) => setDocumentKind(event.target.value)}
-        className="mt-1 w-full rounded border-ink-200 text-sm focus:border-signal-blue focus:ring-signal-blue"
+        className="mt-1 w-full rounded-lg border-ink-200 bg-ink-50 text-sm focus:border-luxury-mint focus:ring-luxury-mint"
       >
         <option value="earnings_call">Earnings call transcript</option>
         <option value="sec_filing">SEC filing</option>
@@ -80,10 +88,12 @@ export function UploadPanel({ onReport, onStage, onError }: UploadPanelProps) {
 
       <label
         htmlFor="file"
-        className="mt-4 flex min-h-36 cursor-pointer flex-col items-center justify-center rounded border border-dashed border-ink-300 bg-ink-50 px-4 text-center hover:bg-white"
+        className="mt-4 flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-ink-300 bg-luxury-pearl px-4 text-center hover:border-luxury-gold hover:bg-white"
       >
-        <Upload className="h-5 w-5 text-ink-500" aria-hidden />
-        <span className="mt-2 text-sm font-medium">{filename || "Upload PDF or text file"}</span>
+        <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-ink-200 bg-white shadow-hairline">
+          <Upload className="h-5 w-5 text-luxury-mint" aria-hidden />
+        </span>
+        <span className="mt-3 text-sm font-semibold">{filename || "Upload PDF or text file"}</span>
         <span className="mt-1 text-xs text-ink-500">
           Earnings calls and SEC filings are prioritized in this MVP.
         </span>
@@ -101,11 +111,12 @@ export function UploadPanel({ onReport, onStage, onError }: UploadPanelProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded bg-ink-950 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-ink-500"
+        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-luxury-graphite px-3 py-2.5 text-sm font-medium text-white shadow-elevated hover:bg-ink-800 disabled:cursor-not-allowed disabled:bg-ink-500"
       >
         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Upload className="h-4 w-4" aria-hidden />}
         Generate Analysis
       </button>
+      </div>
     </form>
   );
 }

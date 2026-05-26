@@ -14,20 +14,25 @@ export function ProcessingTimeline({ activeStage }: { activeStage: string }) {
   const isError = activeStage === "error";
 
   return (
-    <section className="rounded border border-ink-200 bg-white p-4 shadow-hairline">
-      <h2 className="text-sm font-semibold">Processing Status</h2>
-      <ol className="mt-3 space-y-2">
+    <section className="rounded-lg border border-ink-200 bg-white p-4 shadow-elevated">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold">Processing Status</h2>
+        <span className="rounded border border-ink-200 px-2 py-1 font-mono text-[11px] uppercase text-ink-500">
+          {isComplete ? "complete" : isError ? "error" : activeStage}
+        </span>
+      </div>
+      <ol className="mt-4 space-y-3">
         {steps.map((step, index) => {
           const done = isComplete || (activeIndex >= 0 && index < activeIndex);
           const current = step.id === activeStage;
           return (
-            <li key={step.id} className="flex items-center gap-2 text-sm">
+            <li key={step.id} className="flex items-center gap-3 text-sm">
               {done ? (
                 <CheckCircle2 className="h-4 w-4 text-signal-green" aria-hidden />
               ) : isError && index === Math.max(activeIndex, 0) ? (
                 <CircleAlert className="h-4 w-4 text-signal-red" aria-hidden />
               ) : (
-                <Circle className={`h-4 w-4 ${current ? "text-signal-blue" : "text-ink-300"}`} aria-hidden />
+                <Circle className={`h-4 w-4 ${current ? "text-luxury-gold" : "text-ink-300"}`} aria-hidden />
               )}
               <span className={current ? "font-medium text-ink-950" : "text-ink-600"}>{step.label}</span>
             </li>

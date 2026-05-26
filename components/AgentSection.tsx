@@ -1,9 +1,9 @@
 import type { AgentClaim, EvidenceCitation } from "@/lib/types";
 
 const toneClasses = {
-  green: "border-signal-green/30 text-signal-green",
-  red: "border-signal-red/30 text-signal-red",
-  amber: "border-signal-amber/30 text-signal-amber"
+  green: "border-signal-green/25 bg-signal-green/5 text-signal-green",
+  red: "border-signal-red/25 bg-signal-red/5 text-signal-red",
+  amber: "border-signal-amber/25 bg-signal-amber/5 text-signal-amber"
 };
 
 export function AgentSection({
@@ -18,16 +18,16 @@ export function AgentSection({
   onCitation: (citation: EvidenceCitation) => void;
 }) {
   return (
-    <section className="rounded border border-ink-200 bg-white p-4 shadow-hairline">
+    <section className="rounded-lg border border-ink-200 bg-white p-4 shadow-elevated">
       <div className="mb-3 flex items-center justify-between border-b border-ink-200 pb-3">
         <h2 className="text-sm font-semibold">{title}</h2>
-        <span className={`rounded border px-2 py-1 font-mono text-[11px] ${toneClasses[tone]}`}>
+        <span className={`rounded border px-2 py-1 font-mono text-[11px] uppercase ${toneClasses[tone]}`}>
           {claims.length} claims
         </span>
       </div>
       <div className="space-y-3">
         {claims.map((claim) => (
-          <article key={claim.id} className="rounded border border-ink-200 p-3">
+          <article key={claim.id} className="rounded-lg border border-ink-200 bg-luxury-pearl p-3">
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-sm font-semibold">{claim.title}</h3>
               <span className="rounded border border-ink-200 px-2 py-1 font-mono text-[11px] text-ink-600">
@@ -48,7 +48,7 @@ export function AgentSection({
                   key={citation.id}
                   type="button"
                   onClick={() => onCitation(citation)}
-                  className="rounded border border-ink-200 px-2 py-1 font-mono text-[11px] text-ink-600 hover:border-ink-500"
+                  className="rounded border border-ink-200 bg-white px-2 py-1 font-mono text-[11px] text-ink-600 hover:border-luxury-gold hover:text-ink-950"
                 >
                   {citation.section}
                   {citation.page

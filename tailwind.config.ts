@@ -26,6 +26,13 @@ const config: Config = {
           red: "#b42318",
           amber: "#a15c07",
           blue: "#2563eb"
+        },
+        luxury: {
+          graphite: "#111318",
+          panel: "#171a21",
+          gold: "#c9a227",
+          mint: "#25a978",
+          pearl: "#fbfcf8"
         }
       },
       fontFamily: {
@@ -33,7 +40,8 @@ const config: Config = {
         mono: ["IBM Plex Mono", "ui-monospace", "SFMono-Regular", "monospace"]
       },
       boxShadow: {
-        hairline: "inset 0 0 0 1px rgba(16, 17, 20, 0.08)"
+        hairline: "inset 0 0 0 1px rgba(16, 17, 20, 0.08)",
+        elevated: "0 18px 50px rgba(17, 19, 24, 0.08)"
       }
     }
   },

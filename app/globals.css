@@ -4,7 +4,7 @@
 
 :root {
   color-scheme: light;
-  background: #f8f9fb;
+  background: #f4f6f3;
   color: #101114;
 }
 
@@ -15,8 +15,11 @@
 body {
   min-height: 100vh;
   margin: 0;
-  background: #f8f9fb;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(244, 246, 243, 0.96)),
+    #f4f6f3;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
 }
 
 button,
